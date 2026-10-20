@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Claude Showroom · 作品展示間</title>
+<meta name="description" content="我和 Claude 一起做的專案展示間 — A showroom of projects built with Claude."/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2307070d'/%3E%3Ccircle cx='32' cy='32' r='11' fill='%23e8a27c'/%3E%3Cellipse cx='32' cy='32' rx='25' ry='8' fill='none' stroke='%23d97757' stroke-width='2'/%3E%3C/svg%3E"/>
+<style>
+  :root{--bg:#07070d;--card:#10101a;--line:#23233a;--text:#ece9f4;--mute:#9a97ad;--accent:#e8a27c;--accent2:#d97757}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font:400 16px/1.6 "Noto Sans TC","PingFang TC","Microsoft JhengHei",Inter,system-ui,-apple-system,sans-serif}
+  body{min-height:100vh;background:radial-gradient(1200px 600px at 80% -10%,rgba(217,119,87,.12),transparent 60%),radial-gradient(900px 500px at -10% 10%,rgba(232,162,124,.08),transparent 60%),var(--bg)}
+  a{color:inherit}
+  .wrap{max-width:1080px;margin:0 auto;padding:72px 24px 48px}
+  header h1{margin:0;font-weight:700;font-size:clamp(30px,5vw,48px);letter-spacing:.02em}
+  header h1 span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  header p{margin:.6em 0 0;color:var(--mute);max-width:640px}
+  header p small{display:block;font-size:13px;letter-spacing:.04em;opacity:.8}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:22px;margin-top:48px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;transition:transform .2s,border-color .2s,box-shadow .2s}
+  .card:hover{transform:translateY(-3px);border-color:#3a3a5a;box-shadow:0 12px 40px rgba(0,0,0,.45)}
+  .thumb{display:block;aspect-ratio:16/9;background:#000 center/cover no-repeat}
+  .body{padding:18px 20px 20px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .date{font:500 12px/1 "JetBrains Mono",ui-monospace,monospace;color:var(--mute);letter-spacing:.08em}
+  .title{margin:0;font-size:20px;font-weight:700}
+  .title small{font-weight:400;color:var(--mute);font-size:14px;margin-left:6px}
+  .desc{margin:0;color:#c9c6d8;font-size:14px}
+  .desc small{display:block;color:var(--mute);font-size:12.5px}
+  .links{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:10px}
+  .btn{font-size:13px;text-decoration:none;padding:7px 12px;border-radius:999px;border:1px solid var(--line);color:var(--text)}
+  .btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#14101a;border:0;font-weight:700}
+  .btn:hover{border-color:#55557a}
+  footer{margin-top:64px;color:var(--mute);font-size:13px;border-top:1px solid var(--line);padding-top:20px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><span>Claude</span> Showroom · 作品展示間</h1>
+    <p>我和 Claude 一起做的專案，每個都可以直接在瀏覽器裡試玩。<small>Projects built with Claude — each one live in your browser.</small></p>
+  </header>
+
+  <main class="grid">
+    <article class="card">
+      <a class="thumb" href="20261019-letters-from-the-sky/" style="background-image:url('20261019-letters-from-the-sky/shots/thumb.jpg')" aria-label="天空寄來的信 Letters from the Sky demo"></a>
+      <div class="body">
+        <div class="date">2026-10-19 · 20261019-letters-from-the-sky</div>
+        <h2 class="title">天空寄來的信<small>Letters from the Sky</small></h2>
+        <p class="desc">你就是天氣：移動滑鼠改變溫度與濕度，一片雪晶依真實的水氣擴散模型在 GPU 上即時長出來，形狀記錄了你走過的路；落在毛線上，讀成一封信。<small>You are the weather. A snow crystal grows from a real vapour-diffusion lattice model on the GPU while you steer temperature and humidity; its shape records your path. It lands on dark wool, re-reads itself, and becomes a letter: grow its twin, share the journey, keep a gallery.</small></p>
+        <div class="links">
+          <a class="btn primary" href="20261019-letters-from-the-sky/">▶ 試玩 Play</a>
+          <a class="btn" href="20261019-letters-from-the-sky/v1/">v1</a>
+          <a class="btn" href="20261019-letters-from-the-sky/prototypes/a-snow/">原型 Prototype</a>
+          <a class="btn" href="https://github.com/TheDreamersTop/claude-showroom/tree/main/20261019-letters-from-the-sky">原始碼 Source</a>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <span>Built with Claude · 由 Claude 協作完成</span>
+    <a href="https://github.com/TheDreamersTop/claude-showroom">github.com/TheDreamersTop/claude-showroom</a>
+  </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Prototype A — snow crystal</title>
+<style>html,body{margin:0;height:100%;background:#000;overflow:hidden}canvas{display:block;width:100vw;height:100vh}
+#hud{position:fixed;left:12px;top:10px;color:#9ab;font:12px monospace}</style></head>
+<body><canvas id="c"></canvas><div id="hud"></div>
+<script>
+const Q = new URLSearchParams(location.search);
+const N = +(Q.get('n') || 512);
+const SPF = +(Q.get('spf') || 60);
+const P = Object.assign({ rho: 0.635, beta: 1.6, alpha: 0.4, theta: 0.025, kappa: 0.0025, mu: 0.015, gamma: 0.0005, sigma: 0 },
+  JSON.parse(Q.get('p') || '{}'));
+const cv = document.getElementById('c');
+const gl = cv.getContext('webgl2', { antialias: false });
+gl.getExtension('EXT_color_buffer_float');
+function sh(type, src) { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw gl.getShaderInfoLog(s) + src; return s; }
+const VS = `#version 300 es
+in vec2 p; out vec2 uv; void main(){ uv = p*.5+.5; gl_Position = vec4(p,0,1); }`;
+function prog(fs) { const p = gl.createProgram(); gl.attachShader(p, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(p, sh(gl.FRAGMENT_SHADER, fs)); gl.bindAttribLocation(p, 0, 'p'); gl.linkProgram(p); if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw gl.getProgramInfoLog(p); p.u = {}; const n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS); for (let i = 0; i < n; i++) { const a = gl.getActiveUniform(p, i); p.u[a.name] = gl.getUniformLocation(p, a.name); } return p; }
+const vb = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, vb); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+function tex() { const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, N, N, 0, gl.RGBA, gl.FLOAT, null);
+  for (const k of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(gl.TEXTURE_2D, k, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  const f = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, f); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0); return { t, f }; }
+let A = tex(), B = tex();
+const HEAD = `#version 300 es
+precision highp float; precision highp int; uniform highp sampler2D S; uniform float N;
+in vec2 uv; out vec4 o;
+const ivec2 NB[6] = ivec2[6](ivec2(1,0),ivec2(-1,0),ivec2(0,1),ivec2(0,-1),ivec2(1,-1),ivec2(-1,1));
+vec4 at(ivec2 q){ return texelFetch(S, clamp(q, ivec2(0), ivec2(int(N)-1)), 0); }
+`;
+const INIT = prog(HEAD + `uniform float rho; void main(){ ivec2 q = ivec2(gl_FragCoord.xy); ivec2 c = ivec2(int(N)/2);
+  if (q == c) o = vec4(1., 0., 1., 0.); else o = vec4(0., 0., 0., rho); }`);
+// diffusion (+ noise); attached cells reflect
+const DIFF = prog(HEAD + `uniform float rho, sigma, seed;
+float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233))+seed)*43758.5453); }
+void main(){ ivec2 q = ivec2(gl_FragCoord.xy); vec4 s = at(q);
+  if (q.x<=1||q.y<=1||q.x>=int(N)-2||q.y>=int(N)-2){ o = vec4(0.,0.,0.,rho); return; }
+  if (s.r > 0.) { o = s; return; }
+  float d = s.a;
+  for (int k=0;k<6;k++){ vec4 n = at(q+NB[k]); d += n.r>0. ? s.a : n.a; }
+  d /= 7.;
+  if (sigma>0.) d *= 1. + sigma*(h(vec2(q))*2.-1.);
+  o = vec4(s.rgb, d); }`);
+// freezing + attachment + melting
+const GROW = prog(HEAD + `uniform float beta, alpha, theta, kappa, mu, gamma, T;
+void main(){ ivec2 q = ivec2(gl_FragCoord.xy); vec4 s = at(q);
+  if (s.r > 0.) { o = s; return; }
+  int n = 0; float sd = s.a;
+  for (int k=0;k<6;k++){ vec4 m = at(q+NB[k]); if (m.r>0.) n++; else sd += m.a; }
+  if (n == 0) { o = s; return; }
+  float b = s.g + (1.-kappa)*s.a, c = s.b + kappa*s.a, d = 0.;
+  bool att = (n<=2 && b>=beta) || (n==3 && (b>=1. || (b>=alpha && sd<theta))) || n>=4;
+  if (att) { o = vec4(T, 0., b + c, 0.); return; }
+  d = mu*b + gamma*c; b *= 1.-mu; c *= 1.-gamma;
+  o = vec4(0., b, c, d); }`);
+const DRAW = prog(HEAD + `uniform vec2 R; uniform float T, zoom;
+vec4 samp(vec2 a){ vec2 f = fract(a); ivec2 i = ivec2(floor(a));
+  return mix(mix(at(i),at(i+ivec2(1,0)),f.x), mix(at(i+ivec2(0,1)),at(i+ivec2(1,1)),f.x), f.y); }
+vec2 toAx(vec2 p){ float j = p.y*2./sqrt(3.); return vec2(p.x - j*.5, j) + N*.5; }
+float field(vec2 p){ vec4 s = samp(toAx(p)); return s.r>0. ? s.b : 0.; }
+float H(vec2 p){ vec4 s = samp(toAx(p)); float m = smoothstep(0.,1.,clamp(s.r>0.?1.:0.,0.,1.)); return s.b*step(.5,s.r>0.?1.:0.); }
+vec3 bg(vec2 p){ // deep indigo with bokeh
+  vec3 c = mix(vec3(.02,.03,.08), vec3(.06,.08,.2), smoothstep(-1.,1.,p.y));
+  for (int i=0;i<14;i++){ float fi=float(i); vec2 cpos = vec2(sin(fi*7.13)*1.6, cos(fi*3.71)*.9); float r = .08+.12*fract(fi*.618);
+    float dd = length(p-cpos); c += vec3(.25,.35,.6)*(.08+.1*fract(fi*.37))*smoothstep(r, r-.01, dd); }
+  return c; }
+void main(){ vec2 p = (gl_FragCoord.xy - .5*R)/R.y; vec2 w = p*zoom;
+  float e = zoom/R.y*1.5;
+  vec4 s0 = samp(toAx(w)); float in0 = s0.r>0. ? 1. : 0.;
+  float hc = s0.b*in0;
+  float hx = samp(toAx(w+vec2(e,0))).b*(samp(toAx(w+vec2(e,0))).r>0.?1.:0.) - samp(toAx(w-vec2(e,0))).b*(samp(toAx(w-vec2(e,0))).r>0.?1.:0.);
+  float hy = samp(toAx(w+vec2(0,e))).b*(samp(toAx(w+vec2(0,e))).r>0.?1.:0.) - samp(toAx(w-vec2(0,e))).b*(samp(toAx(w-vec2(0,e))).r>0.?1.:0.);
+  vec2 g = vec2(hx,hy)*3.;
+  vec3 col;
+  vec3 back = bg(p);
+  if (hc > 0.) {
+    vec2 off = g*.02;
+    vec3 refr = vec3(bg(p+off*1.0).r, bg(p+off*1.15).g, bg(p+off*1.3).b);
+    float edge = clamp(length(g)*.8,0.,1.);
+    float t = clamp((hc-.8)*1.5,0.,1.);
+    col = refr*1.3 + vec3(.55,.7,1.)*edge*.9 + vec3(.15,.2,.35)*t + vec3(.9,.95,1.)*pow(max(0.,dot(normalize(vec3(-g,1.)), normalize(vec3(.4,.6,.7)))),40.)*.6;
+  } else col = back;
+  // faint halo
+  col += vec3(.1,.15,.3)*smoothstep(.02,0.,0.)*0.;
+  col *= 1. - .35*dot(p,p);
+  o = vec4(pow(col, vec3(.4545)), 1.); }`);
+function run(p, src, dst, u) { gl.useProgram(p); gl.bindFramebuffer(gl.FRAMEBUFFER, dst ? dst.f : null); gl.viewport(0, 0, dst ? N : cv.width, dst ? N : cv.height);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, src ? src.t : null); gl.uniform1i(p.u.S, 0); gl.uniform1f(p.u.N, N);
+  for (const k in u) { const v = u[k]; if (p.u[k] == null) continue; Array.isArray(v) ? gl.uniform2fv(p.u[k], v) : gl.uniform1f(p.u[k], v); }
+  gl.drawArrays(gl.TRIANGLES, 0, 3); }
+run(INIT, null, A, { rho: P.rho });
+let T = 1;
+function step() { run(DIFF, A, B, { rho: P.rho, sigma: P.sigma, seed: T % 1000 }); run(GROW, B, A, Object.assign({ T: T++ }, P)); }
+function frame() {
+  cv.width = innerWidth; cv.height = innerHeight;
+  for (let i = 0; i < SPF; i++) step();
+  run(DRAW, A, null, { R: [cv.width, cv.height], T, zoom: +(Q.get('zoom') || 300) });
+  document.getElementById('hud').textContent = 'step ' + T;
+  window.__T = T;
+  requestAnimationFrame(frame);
+}
+frame();
+</script></body></html>

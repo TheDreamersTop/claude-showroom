@@ -1,0 +1,46 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Prototype B — Lightning in Glass</title>
+<style>html,body{margin:0;height:100%;background:#000;overflow:hidden}</style>
+<script type="importmap">{"imports":{"three":"../vendor/three.module.min.js","three/addons/":"../vendor/jsm/"}}</script></head>
+<body><script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setSize(innerWidth, innerHeight); document.body.appendChild(r.domElement);
+r.toneMapping = THREE.ACESFilmicToneMapping;
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x020107);
+const cam = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, .1, 100); cam.position.set(3.2, 1.6, 4.2); cam.lookAt(0, 0, 0);
+scene.environment = new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment(), .04).texture;
+// glass block
+const box = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), new THREE.MeshPhysicalMaterial({ color: 0x3a3a80, roughness: .02, metalness: 0, transparent: true, opacity: .12, depthWrite: false, envMapIntensity: 1.5, side: THREE.DoubleSide }));
+scene.add(box);
+const edges = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(2, 2, 2)), new THREE.LineBasicMaterial({ color: 0x5a5aa0, transparent: true, opacity: .5 })); scene.add(edges);
+// space colonization tree from the top-center
+const att = []; for (let i = 0; i < 2500; i++) { const p = new THREE.Vector3(Math.random() * 1.8 - .9, Math.random() * 1.8 - .9, Math.random() * 1.8 - .9); att.push(p); }
+const nodes = [{ p: new THREE.Vector3(0, .95, 0), parent: -1, depth: 0 }];
+const segs = [];
+for (let it = 0; it < 120 && att.length; it++) {
+  const dir = nodes.map(() => new THREE.Vector3()), cnt = nodes.map(() => 0);
+  for (let a = att.length - 1; a >= 0; a--) { let best = -1, bd = .35; for (let n = 0; n < nodes.length; n++) { const d = nodes[n].p.distanceTo(att[a]); if (d < bd) { bd = d; best = n; } }
+    if (best < 0) continue; if (bd < .05) { att.splice(a, 1); continue; } dir[best].add(att[a].clone().sub(nodes[best].p).normalize()); cnt[best]++; }
+  const L = nodes.length; let grew = 0;
+  for (let n = 0; n < L; n++) if (cnt[n]) { const d = dir[n].normalize().add(new THREE.Vector3((Math.random() - .5) * .8, (Math.random() - .5) * .8 - .2, (Math.random() - .5) * .8)).normalize(); const p = nodes[n].p.clone().addScaledVector(d, .035); nodes.push({ p, parent: n, depth: nodes[n].depth + 1 }); segs.push([n, nodes.length - 1]); grew++; }
+  if (!grew) { nodes[0].p.y -= 0; const p = nodes[nodes.length - 1].p.clone(); p.y -= .04; nodes.push({ p, parent: nodes.length - 1, depth: 0 }); }
+}
+// thickness ~ subtree size
+const sub = new Float32Array(nodes.length).fill(1); for (let i = nodes.length - 1; i > 0; i--) sub[nodes[i].parent] += sub[i];
+const pos = [], col = [], dep = [];
+for (const [a, b] of segs) { const w = Math.min(1, Math.log(1 + sub[b]) / 5); for (const i of [a, b]) { pos.push(nodes[i].p.x, nodes[i].p.y, nodes[i].p.z); col.push(.5 + w, .45 + w * .8, 1); dep.push(nodes[b].depth); } }
+const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setAttribute('dep', new THREE.Float32BufferAttribute(dep, 1));
+const maxd = Math.max(...dep);
+const mat = new THREE.ShaderMaterial({ uniforms: { t: { value: 0 } }, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
+  vertexShader: `attribute float dep; varying float d; varying vec3 c; attribute vec3 color; void main(){ d=dep; c=color; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+  fragmentShader: `uniform float t; varying float d; varying vec3 c; void main(){ float v = step(d, t*${maxd}.); float flash = exp(-max(0.,t-1.)*3.); gl_FragColor=vec4(c*v*(1.2+3.*flash),1.); }` });
+scene.add(new THREE.LineSegments(g, mat));
+const comp = new EffectComposer(r); comp.addPass(new RenderPass(scene, cam)); comp.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.3, .5, .1));
+const t0 = performance.now();
+function loop() { const t = (performance.now() - t0) / 1000; mat.uniforms.t.value = Math.min(t / 1.2, 1) + Math.max(0, t - 1.2); scene.rotation.y = t * .15; comp.render(); requestAnimationFrame(loop); }
+loop();
+</script></body></html>

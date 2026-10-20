@@ -1,0 +1,44 @@
+# PROGRESS (append-only)
+- 09:35 UTC start. Env: node22, playwright chromium + SwiftShader WebGL2 OK (float FBO OK). GitHub push not linked → user later said keep local, validate in container.
+
+- 09:43 UTC (≈8 min wall-clock; the tooling is fast) — Research (RESEARCH.md), 6 candidates, 3 prototypes rendered (A snow GG model, B Lichtenberg, C pop-up). Picked A. Hero moment defined. Bottleneck: the snow render looks like a flat icon; next: modular engine + parameter explorer + macro-photo shading.
+- ~10:05 UTC — Engine modules (gl.js, sim.js w/ scissored active box, render.js, weather.js, main.js, index.html). Param explorer (tools/explore.html) rendered 12 GG parameter sets → wide morphology range confirmed (shots/explore1.jpg).
+  Failures: (1) spent several iterations "tuning" brightness that was actually the 1.5 s fade-in still running in slow headless frames → added `t0`/`fixdt` test hooks; (2) naive backlit shading made clear ice invisible → switched to dark-field model (edge orientation picks coloured lamps) + hex-triangle interpolation for straight facets.
+  Bottleneck now: weather→parameter mapping (current default weather yields an odd ringed plate), sky still a bit flat, no landing/collection scene yet.
+- ~10:45 UTC — **V1 complete** (10:12; flow sheet shots/v1-flow.jpg) → independent review REVIEW-01 scored 5/10.
+  Since then (Pass 1 visual + Pass 2 experience work in parallel):
+  * weather map re-derived from 3 sweeps (grid1→grid3) — now 6 habits by region (plate/sector/stellar/fern/needle/open dendrite); journeys produce textbook forms (plate centre + fern arms, dendrite with plate tips) — shots/journey1.jpg.
+  * timeline texture: every ice cell knows the weather it froze in → growth rings / humidity terraces / birth tint; enables replay.
+  * adaptive pace (constant visual growth speed), nucleus prism, zoom floor (crystal starts small, grows into frame), slab side-walls, symmetry noise σ=2e-5.
+  * landing: rack-focus onto procedural knitted wool, glint flash, growth replay synced with Nakaya trace, generated bilingual letter text, gallery pull-back of all letters (texture array), hover/click to revisit, share link that regrows the same journey (#letter=...), synthesized wind + pentatonic chimes.
+  Tested: landing sequence screenshots (v2L-*). Failed: card unpositioned; replay hidden by side walls; wool too grey/regular → fixed, re-testing.
+  Bottleneck: intro first frame (just a tiny prism + quote) is the weakest first impression.
+- 10:53 UTC — Checkpoint (1h18m elapsed). Full-loop automation (tools/fullflow.sh: intro → click → rewind → steer → land → gallery → rise → 2nd crystal → gallery → hover) running on V2.
+  Built since 10:45: intro bloom (preset journey) + rewind-to-seed transition; replay masking via 7-cell max of birth time (no ghost outlines); letter ring buffer; hover highlight; dynamic resolution + ?stats overlay; README.
+  Evidence: shots v2-03..05 show plate centre → fern arms after steering (photographic). Bottleneck: unknown real-GPU perf (only SwiftShader here) → dynamic resolution + adaptive step budget as mitigation.
+- 11:34 UTC (2h00m) — REVIEW-02 = 6.5/10. V3 work (responding to it):
+  * card: dark blurred scrim, poem first (23 px), log small, text-link buttons; minimap = hairline habit contours + thick habit-coloured path, no box.
+  * whole screen = Nakaya diagram (faint habit tints + borders near cursor) + cursor label; ice tinted by the habit it froze in (bands visible).
+  * breath: local warm haze only; sublimation pass (tips/thin branches first). Twins: exact timeline replay with new noise seed, placed beside the original.
+  * radius measurement via GPU reduction over full hex distance (fixes clipped crystals), radius-aware letter packing, fit-to-content gallery camera left of the card.
+  * wool v3: fibre strands + raking light + straight stray hairs (no vein network); crystal shadows with caustic rims (live + gallery); gallery letters use hex triangle interpolation.
+  Failed/bugs found: gallery test waited for a phase that had already advanced (script bug); rise transition black frame (fixed); chimes too frequent (throttled).
+  Bottleneck: wool/gallery still the weakest visual; next: verify v3b gallery shots.
+- ~11:50 UTC — **Correctness bug found via the twin test**: with large step chunks between radius read-backs (intro: 400/frame in tests), the crystal outgrew the scissored active region and got clipped into a hexagonal "plate" — the intro and some test crystals were artefacts. Twin (80-step chunks) grew the true form (stellar dendrite + plate tips). Fix: active box margin grows with steps since last measure, quantised to 32 cells, margin R·1.25+56. Also: autoLetter hook resets crystal when called from intro/rewind.
+  Also added: gallery hover lift (shadow separates), slow camera drift, favicon/meta, vapour view rebuilt (local depletion halo + isolines, masked to the active region), screen-wide habit borders reduced to local hairlines.
+- ~12:33 UTC (2h58m) — Verified: twins (v3u-twins: two near-identical dendrites side by side), share link (#letter=… → gift banner → scripted regrowth → auto-land with same text, v3g-*), postcard PNG export (v3p-download.png), new intro journey (stellar dendrite + plate tips + central plate, v3h-intro), vapour view, live habit response (plate tips when steering into dry air, v3h-grow2).
+  Console audit (load → click → steer → V → breathe → land → rise → reload): 0 errors, 0 failed requests.
+  Removed: full-screen habit hairlines (read as stray UI box); kept faint cursor-local tint + cursor label.
+  Local showroom index + README updated with a card for this project (no push, per user).
+  REVIEW-03 running on v3-sheet.jpg.
+- ~12:52 UTC (3h17m) — V4 pass done (response to REVIEW-03): gallery letters share the live material; single soft shadows; finer, lower-contrast knit (now reads as stockinette, v4-g4); light-sweep landing; growth contours; round bokeh; postcard redesign; card-safe framing. Bugs fixed: sweep overlapped replay start; shadow lookups reaching texture edge; autoLetter test hook exceeded the size limit.
+  Next: 1920×1080 production check (v4w-*), then REVIEW-04, then final QA/docs.
+- 13:03 UTC (3h28m, clock-checked) — note: some earlier entries carried estimated times that ran ahead of the real clock; corrected to approximate values marked '~'. REVIEW-04 running on v4-sheet.jpg; thumbnail/og generated.
+- 13:04 UTC — REVIEW-04 = 7.5/10; V5 polish pass implemented (see REVIEW.md); verifying gallery at 768² (v5-*).
+- 13:39 UTC (4h04m) — **Physics bug #2 found** while chasing REVIEW-04's "bow-tie" crystal: newCrystal() reset the whole vapour field to the plate preset's ρ=0.8, and every time the active region expanded, fresh cells fed that dense vapour to the crystal regardless of the weather → app crystals grew ~5× faster than the reference sweeps (R 307 vs 61 at the same step count), weather mattered less, and some regimes went unstable. Fix: nucleus uses ambient ρ=0.5; a FILL pass sets newly activated cells to the current weather's ρ. (Explorer fixed to honour ?sigma.) Also added: gallery light pool + specimen labels (№, habit). Re-verifying (v6-*).
+- 14:10 UTC (4h35m) — Root cause of growth-rate discrepancies: the scissored active region doubles as the vapour boundary (Dirichlet ρ). Its size depended on how often the radius was read back (frame-rate dependent) → in the app intro (thousands of steps between read-backs) the boundary sat at the lattice edge and crystals starved (R 38 vs 233 in the explorer). Fix: sim.step() re-measures at least every 128 steps; box = quantised f(R) only → deterministic across machines, twins & share links comparable. Intro journey re-chosen from a corrected 768² sweep (shots/introJ2.jpg). Intro step budget now frame-time adaptive (≤140/frame).
+- 14:26 UTC (4h51m) — Determinism verified with an in-page simulator probe (tools/simprobe.html): R=115 after 3000 fern steps for every init density / chunk size / read-back cadence. Remaining discrepancy traced to the slow plate-parameter nucleus phase eating ~1000+ steps of each journey (R 82 vs 198). Fix: crystals start as a radius-4 hexagonal prism seed; weather applies from step 1.
+- 14:39 UTC (5h04m) — REVIEW-05 = 8/10. Implemented its three fixes (see REVIEW.md); pruned vendored three.js examples (15 MB → 0.75 MB). Verifying (v8-*).
+- 15:29 UTC — Final verification: 1920×1080 production run (final-*), twins near-identical (final-twins), shared link regrows + same narrative (final-shared-letter), console audit 0 errors after last edits. Shots converted to JPEG (80 MB → 13 MB). README: screenshots, run instructions, evolution. REVIEW-06 (pre-release) running.
+- 15:34 UTC (5h59m) — REVIEW-06 = 8.5/10; blockers fixed (see REVIEW.md). Final verification run (last-*).
+- 15:45 UTC (6h10m) — DONE. Final audit 0 errors; final shots + docs synced to 20261019-letters-from-the-sky/{shots,docs}; FINAL_REPORT complete.

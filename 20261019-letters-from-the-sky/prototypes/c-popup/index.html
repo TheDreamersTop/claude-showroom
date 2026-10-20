@@ -1,0 +1,66 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Prototype C — Pop-up Atlas</title>
+<style>html,body{margin:0;height:100%;background:#000;overflow:hidden}</style>
+<script type="importmap">{"imports":{"three":"../vendor/three.module.min.js","three/addons/":"../vendor/jsm/"}}</script></head>
+<body><script type="module">
+import * as THREE from 'three';
+const Q = new URLSearchParams(location.search);
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setSize(innerWidth, innerHeight); document.body.appendChild(r.domElement);
+r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap; r.toneMapping = THREE.ACESFilmicToneMapping;
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x1a1410); scene.fog = new THREE.Fog(0x1a1410, 8, 20);
+const cam = new THREE.PerspectiveCamera(32, innerWidth / innerHeight, .1, 100); cam.position.set(0, 4.2, 6.2); cam.lookAt(0, .6, -.3);
+const lamp = new THREE.SpotLight(0xffd9a8, 80, 20, .6, .5, 1.6); lamp.position.set(-3, 6, 3); lamp.castShadow = true; lamp.shadow.mapSize.set(2048, 2048); lamp.shadow.radius = 6; scene.add(lamp);
+scene.add(new THREE.HemisphereLight(0x8090b0, 0x302018, .5));
+const table = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({ color: 0x3b2a1e, roughness: .8 })); table.rotation.x = -Math.PI / 2; table.receiveShadow = true; scene.add(table);
+// paper textures with papercut silhouettes
+function cut(draw, color) { const c = document.createElement('canvas'); c.width = 1024; c.height = 512; const x = c.getContext('2d'); x.fillStyle = color; draw(x); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; }
+const rnd = (s => () => (s = (s * 16807) % 2147483647) / 2147483647)(7);
+const skyline = x => { x.beginPath(); x.moveTo(0, 512); let px = 0; while (px < 1024) { const w = 40 + rnd() * 90, h = 120 + rnd() * 330; x.lineTo(px, 512 - h); if (rnd() < .3) { x.lineTo(px + w / 2, 512 - h - 50); } x.lineTo(px + w, 512 - h); px += w; } x.lineTo(1024, 512); x.fill();
+  x.globalCompositeOperation = 'destination-out'; for (let i = 0; i < 260; i++) { x.fillRect(rnd() * 1024, 200 + rnd() * 300, 8, 12); } };
+const trees = x => { for (let i = 0; i < 9; i++) { const cx = 60 + i * 115 + rnd() * 30, h = 200 + rnd() * 250; x.beginPath(); x.moveTo(cx - 70, 512); x.lineTo(cx, 512 - h); x.lineTo(cx + 70, 512); x.fill(); x.fillRect(cx - 8, 470, 16, 42); } };
+const hills = x => { x.beginPath(); x.moveTo(0, 512); for (let i = 0; i <= 1024; i += 8) x.lineTo(i, 330 - Math.sin(i * .008) * 90 - Math.sin(i * .021) * 30); x.lineTo(1024, 512); x.fill(); };
+const pageMat = new THREE.MeshStandardMaterial({ color: 0xf2e8d5, roughness: .95, side: THREE.DoubleSide });
+const W = 3.2, D = 2.4; // page width (from spine) and depth (z)
+function page() { const m = new THREE.Mesh(new THREE.PlaneGeometry(W, D * 2), pageMat); m.geometry.translate(W / 2, 0, 0); m.geometry.rotateX(-Math.PI / 2); m.castShadow = m.receiveShadow = true; return m; }
+const left = page(), right = page(); scene.add(left, right);
+const layers = [
+  { a: 1.9, b: 1.2, tex: cut(hills, '#a9b8a0'), w: 4.2, z: -.9 },
+  { a: 1.4, b: .9, tex: cut(skyline, '#3d4f6b'), w: 3.8, z: -.5 },
+  { a: .95, b: .7, tex: cut(trees, '#5d7a52'), w: 3.4, z: -.1 },
+  { a: .55, b: .45, tex: cut(skyline, '#c96f4a'), w: 2.6, z: .3 },
+];
+for (const L of layers) {
+  L.wall = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshStandardMaterial({ map: L.tex, alphaTest: .5, side: THREE.DoubleSide, roughness: .9 }));
+  L.wall.castShadow = L.wall.receiveShadow = true; L.wall.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: L.tex, alphaTest: .5 });
+  L.floor = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), pageMat); L.floor.castShadow = L.floor.receiveShadow = true; scene.add(L.wall, L.floor);
+}
+// place a parallelogram card: wall spans (a*u1)->(a*u1+b*u2) with height along u2 ; floor (a*u1+b*u2)->(b*u2)
+function quad(mesh, p0, e1, e2) { // plane mesh mapped to p0 + s*e1 + t*e2
+  const g = mesh.geometry, pa = g.attributes.position, uv = g.attributes.uv;
+  for (let i = 0; i < pa.count; i++) { const s = uv.getX(i), t = uv.getY(i); const p = p0.clone().addScaledVector(e1, s).addScaledVector(e2, t); pa.setXYZ(i, p.x, p.y, p.z); }
+  pa.needsUpdate = true; g.computeVertexNormals(); g.computeBoundingSphere(); }
+function setOpen(th) { // th: angle between pages (0..PI)
+  const half = th / 2; const u1 = new THREE.Vector3(-Math.sin(half), Math.cos(half), 0).multiplyScalar(-1); // left page dir
+  const u2 = new THREE.Vector3(Math.sin(half), Math.cos(half), 0).multiplyScalar(1);
+  // book lies with spine along z; pages rise from spine. At th=PI pages flat.
+  const L1 = new THREE.Vector3(-Math.sin(half), -Math.cos(half), 0).negate(); // unit along left page away from spine
+  const a1 = new THREE.Vector3(-1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 0, 1), -(Math.PI - th) / 2);
+  const a2 = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 0, 1), (Math.PI - th) / 2);
+  left.rotation.set(0, 0, 0); left.matrixAutoUpdate = true; left.rotation.y = 0; left.rotation.z = Math.PI - (Math.PI - th) / 2; left.scale.x = 1;
+  right.rotation.z = (Math.PI - th) / 2;
+  const Z = new THREE.Vector3(0, 0, 1);
+  for (const L of layers) {
+    const z0 = new THREE.Vector3(0, 0, L.z - L.w * 0 );
+    const corner = a1.clone().multiplyScalar(L.a).add(a2.clone().multiplyScalar(L.b));
+    const base = new THREE.Vector3(0, .002, 0);
+    // wall: from a*a1 along a2 (length b) ; width along z
+    quad(L.wall, a1.clone().multiplyScalar(L.a).add(new THREE.Vector3(0, 0, L.z + L.w / 2)).add(base), new THREE.Vector3(0, 0, -L.w), a2.clone().multiplyScalar(L.b));
+    quad(L.floor, a2.clone().multiplyScalar(L.b).add(new THREE.Vector3(0, 0, L.z + L.w / 2)).add(base), new THREE.Vector3(0, 0, -L.w), a1.clone().multiplyScalar(L.a));
+  }
+}
+const book = new THREE.Group(); scene.add(book);
+const t0 = performance.now(); const fixed = Q.get('t');
+function loop() { const t = fixed ? +fixed : (performance.now() - t0) / 1000; const k = Math.min(1, t / 3); const e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+  setOpen(.25 + e * (Math.PI - .25 - .02)); r.render(scene, cam); requestAnimationFrame(loop); }
+loop();
+</script></body></html>

@@ -1,0 +1,23 @@
+<!doctype html><canvas id=c></canvas><script type="module">
+import { createGL } from '../js/gl.js'; import { SnowSim } from '../js/sim.js'; import { params } from '../js/weather.js';
+const gl = createGL(document.getElementById('c')); const sim = new SnowSim(gl, 768); const out = {};
+const P = params(0.58, 0.95);
+async function run(name, init, chunk, measureEvery) {
+  sim.reset(init, 1); let k = 0;
+  while (sim.T < 3000) { sim.step(chunk, P); k += chunk; if (measureEvery && k % measureEvery === 0) sim.measure(); if (k % 500 === 0) await new Promise(r => setTimeout(r, 0)); }
+  sim.measure(); out[name] = sim.radius;
+}
+const J = [[0.58, 0.1, 500], [0.58, 0.9, 2600], [0.62, 0.1, 9000]];
+const at = T => { let a = 0; for (const [t, h, n] of J) { if (T < a + n) return params(t, h); a += n; } return params(0.62, 0.1); };
+async function journey(name, nucleus, chunk) {
+  const NU = Object.assign(params(0.2, 0.0), { rho: 0.5 });
+  sim.reset(nucleus ? NU : at(0), 1);
+  if (nucleus) while (sim.T < 4000 && sim.measure() < 6) sim.step(40, NU);
+  while (sim.T < 4300) { sim.step(Math.min(chunk, 4300 - sim.T), nucleus && sim.radius < 7 ? NU : at(sim.T)); await new Promise(r => setTimeout(r, 0)); }
+  sim.measure(); out[name] = [sim.T, sim.radius];
+}
+await journey('no nucleus, 100', false, 100);
+await journey('nucleus, 100', true, 100);
+await journey('nucleus, 400', true, 400);
+window.__out = out; window.__done = true;
+</script>

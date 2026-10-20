@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>天空寄來的信 · Letters from the Sky</title>
+<style>
+  :root { --ink: #e9eefc; --mute: rgba(214,224,255,.55); --line: rgba(200,215,255,.18); }
+  html, body { margin: 0; height: 100%; background: #02030a; overflow: hidden; color: var(--ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Noto Serif TC", "Songti TC", "DejaVu Serif", serif; }
+  canvas#gl { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; cursor: crosshair; }
+  .hud { position: fixed; pointer-events: none; }
+  #title { left: 40px; top: 34px; }
+  #title h1 { margin: 0; font-weight: 400; font-size: 22px; letter-spacing: .32em; }
+  #title p { margin: 6px 0 0; font-size: 12px; letter-spacing: .28em; color: var(--mute); text-transform: uppercase; }
+  #intro { left: 50%; top: 68%; transform: translateX(-50%); text-align: center; transition: opacity 1.2s; }
+  #intro blockquote { margin: 0; font-size: 20px; letter-spacing: .18em; }
+  #intro cite { display: block; margin-top: 10px; font-style: normal; font-size: 12px; letter-spacing: .25em; color: var(--mute); }
+  #intro .go { margin-top: 34px; font-size: 13px; letter-spacing: .3em; color: var(--mute); animation: breathe 3s ease-in-out infinite; }
+  @keyframes breathe { 50% { opacity: .35; } }
+  body.growing #intro { opacity: 0; }
+  #instr { left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 12px; letter-spacing: .22em; color: var(--mute); opacity: 0; transition: opacity 1.5s 1s; white-space: nowrap; }
+  body.growing #instr { opacity: 1; }
+  #panel { left: 40px; bottom: 34px; display: flex; gap: 22px; align-items: flex-end; opacity: 0; transition: opacity 1.5s .5s; }
+  body.growing #panel { opacity: 1; }
+  #nakaya { width: 220px; height: 140px; display: block; }
+  .ax { font: 10px/1 "Inter", sans-serif; letter-spacing: .18em; color: var(--mute); text-transform: uppercase; }
+  .read { display: grid; grid-template-columns: auto auto; gap: 6px 16px; font: 12px/1.2 "Inter", sans-serif; letter-spacing: .12em; }
+  .read b { font-weight: 400; color: var(--mute); text-transform: uppercase; font-size: 10px; letter-spacing: .2em; align-self: center; }
+  #habit { font-family: inherit; font-size: 15px; letter-spacing: .1em; }
+  #letters { right: 34px; top: 30px; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
+  .letter { position: relative; width: 74px; height: 74px; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; opacity: 0; transform: translateY(-10px); transition: all .9s cubic-bezier(.2,.7,.2,1); }
+  .letter.in { opacity: 1; transform: none; }
+  .letter canvas { width: 100%; height: 100%; display: block; }
+  .letter span { position: absolute; left: 5px; bottom: 3px; font: 9px "Inter", sans-serif; letter-spacing: .15em; color: var(--mute); }
+  #err { position: fixed; inset: 0; display: none; place-items: center; text-align: center; font-size: 16px; letter-spacing: .1em; color: var(--mute); padding: 40px; }
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div class="hud" id="title"><h1>天空寄來的信</h1><p>Letters from the Sky</p></div>
+<div class="hud" id="intro">
+  <blockquote>「雪は天から送られた手紙である」</blockquote>
+  <cite>Snow crystals are letters sent from the sky — 中谷宇吉郎 Ukichirō Nakaya</cite>
+  <div class="go">click to let a crystal begin</div>
+</div>
+<div class="hud" id="panel">
+  <div>
+    <canvas id="nakaya" width="220" height="140"></canvas>
+    <div class="ax" style="display:flex;justify-content:space-between;margin-top:6px"><span>−1 °C</span><span>temperature</span><span>−25 °C</span></div>
+  </div>
+  <div class="read">
+    <b>air</b><span id="temp"></span>
+    <b>humidity</b><span id="hum"></span>
+    <b>habit</b><span id="habit"></span>
+    <b>size</b><span id="size"></span>
+  </div>
+</div>
+<div class="hud" id="instr">move = weather &nbsp;·&nbsp; hold = time-lapse &nbsp;·&nbsp; space = let it land</div>
+<div class="hud" id="letters"></div>
+<div id="err"></div>
+<script type="module">
+  import('./js/main.js').catch(e => { const d = document.getElementById('err'); d.style.display = 'grid'; d.textContent = 'This piece needs WebGL2 with float render targets (desktop Chrome). ' + e.message; console.error(e); });
+</script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!doctype html><html><head><meta charset="utf-8"><title>explorer</title>
+<style>body{margin:0;background:#000;color:#9ab;font:11px monospace}#g{display:grid;grid-template-columns:repeat(var(--c,4),300px);gap:2px}canvas{display:block}</style></head>
+<body><div id="g"></div><script type="module">
+import { createGL, program, pass } from '../js/gl.js';
+import { SnowSim } from '../js/sim.js';
+import { params } from '../js/weather.js';
+const Q = new URLSearchParams(location.search);
+let sets = JSON.parse(Q.get('sets') || 'null');
+// journeys: [[t,h,steps],...] per flake; grid: weather grid via weather.js
+const journeys = JSON.parse(Q.get('j') || 'null');
+if (Q.get('grid')) { const [nt, nh] = Q.get('grid').split('x').map(Number); sets = [];
+  for (let b = nh - 1; b >= 0; b--) for (let a = 0; a < nt; a++) sets.push(Object.assign(params(a / (nt - 1), b / (nh - 1)), { _w: [a / (nt - 1), b / (nh - 1)] })); }
+if (journeys) sets = journeys.map(j => ({ _j: j }));
+const N = +(Q.get('n') || 256), maxR = +(Q.get('r') || 100), maxT = +(Q.get('t') || 20000);
+const cv = document.createElement('canvas'); cv.width = cv.height = 300;
+const gl = createGL(cv, { preserveDrawingBuffer: true });
+const sim = new SnowSim(gl, N);
+const show = program(gl, `#version 300 es
+precision highp float; uniform highp sampler2D S; uniform float N, R; in vec2 uv; out vec4 o;
+void main(){ vec2 p = (uv-.5)*2.*R*1.1; float j = p.y*2./sqrt(3.); ivec2 q = ivec2(floor(vec2(p.x - j*.5, j) + N*.5 + .5));
+  vec4 s = texelFetch(S, q, 0); if (s.r <= 0.) { o = vec4(.02,.03,.07,1.) + vec4(0.,0.,s.a*.15,0.); return; }
+  float c = s.b; o = vec4(vec3(.25,.35,.55) + vec3(.8,.75,.6)*clamp((c-.6)*1.2,0.,1.), 1.); }`);
+const g = document.getElementById('g'); g.style.setProperty('--c', Q.get('cols') || 4);
+for (const [i, P] of sets.entries()) {
+  const at = () => { if (!P._j) return P; let acc = 0; for (const [t, h, n] of P._j) { acc += n; if (sim.T < acc) return params(t, h); } const l = P._j[P._j.length - 1]; return params(l[0], l[1]); };
+  sim.reset(Object.assign({ sigma: 0, supply: 0 }, at()), 1);
+  while (sim.T < maxT && sim.measure() < maxR) { sim.step(100, Object.assign(at(), { sigma: +(Q.get('sigma') || 0), supply: +(Q.get('supply') || 0) })); await new Promise(r => setTimeout(r, 0)); }
+  pass(gl, show, null, { S: sim.tex }, { N, R: maxR });
+  const im = new Image(); im.src = cv.toDataURL(); const d = document.createElement('div');
+  d.append(im, document.createTextNode(`#${i} T=${sim.T} r=${sim.radius} ` + (P._w ? 'w=' + P._w.map(v => v.toFixed(2)) : P._j ? 'j=' + JSON.stringify(P._j) : JSON.stringify(P).replace(/"/g, ''))));
+  d.style.width = '300px'; g.append(d);
+}
+window.__done = true;
+</script></body></html>
