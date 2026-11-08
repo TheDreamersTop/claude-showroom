@@ -10,6 +10,7 @@
 | 開始日期 Date | 專案 Project | 簡介 Description | 線上試玩 Live demo | 原始碼 Source |
 |---|---|---|---|---|
 | 2026-10-19 | 天空寄來的信 Letters from the Sky | 你就是天氣：一片雪晶依真實的水氣擴散模型（Gravner–Griffeath）在 GPU 上即時長出，形狀記錄你走過的溫度與濕度；落在毛線上讀成一封信，可長出雙胞胎、分享旅程、收藏成畫廊。<br/>*You are the weather: a snow crystal grows from a real vapour-diffusion lattice model on the GPU and records the path you steer; it lands on wool and becomes a letter — twins, shareable journeys, a gallery.* | [▶ Live](https://thedreamerstop.github.io/claude-showroom/20261019-letters-from-the-sky/) · [v1](https://thedreamerstop.github.io/claude-showroom/20261019-letters-from-the-sky/v1/) | [`20261019-letters-from-the-sky/`](20261019-letters-from-the-sky/) |
+| 2026-11-08 | 左與右 Left & Right | 112 秒耳機短片：一台示波器上的兩個聲音。左聲道畫左右、右聲道畫上下，片中每個聲音都在畫畫面：相遇、合音、成家、孩子遠行、走散，再一起變回一個點。<br/>*A 112-second film for headphones: two voices on one oscilloscope. The left channel draws across, the right draws up and down, so every sound you hear draws what you see.* | [▶ Watch](https://thedreamerstop.github.io/claude-showroom/20261108-left-and-right/) | [`20261108-left-and-right/`](20261108-left-and-right/) |
 
 ## 資料夾命名規則 · Folder naming
 

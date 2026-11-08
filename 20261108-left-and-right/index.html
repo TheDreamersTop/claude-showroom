@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Left &amp; Right · 左與右</title>
+<meta name="description" content="A short film for headphones: two voices on one oscilloscope. Every sound draws the picture.">
+<meta property="og:title" content="Left &amp; Right">
+<meta property="og:description" content="A short film for headphones: two voices on one oscilloscope.">
+<meta property="og:type" content="video.other">
+<meta property="og:image" content="https://thedreamerstop.github.io/claude-showroom/20261108-left-and-right/poster.jpg">
+<meta property="og:video" content="https://thedreamerstop.github.io/claude-showroom/20261108-left-and-right/film.mp4">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://thedreamerstop.github.io/claude-showroom/20261108-left-and-right/poster.jpg">
+<style>
+  :root{--mute:#7f978b;--line:#14201a;--phos:#6dffa6}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#050807;color:#cfe9dc;font:15px/1.6 Ubuntu,"Noto Sans TC",system-ui,-apple-system,"Segoe UI",sans-serif}
+  main{max-width:760px;margin:0 auto;padding:40px 18px 56px}
+  header{text-align:center;margin-bottom:22px}
+  h1{font-weight:500;font-size:clamp(28px,5vw,46px);letter-spacing:.06em;margin:0;color:#e8f6ee}
+  .zh{color:#a9c4b6;font-size:16px;margin-top:4px}
+  .logline{color:var(--mute);margin:12px auto 0;max-width:600px}
+  video{width:100%;height:auto;aspect-ratio:1/1;display:block;background:#000;border-radius:6px;box-shadow:0 0 70px rgba(109,255,166,.07)}
+  .hint{color:var(--mute);font-size:13px;text-align:center;margin-top:10px}
+  .hint b{color:var(--phos);font-weight:500}
+  section{margin:56px auto 0;border-top:1px solid var(--line);padding-top:26px}
+  h2{font-weight:500;font-size:17px;color:#e3f2ea;margin:0 0 10px;letter-spacing:.02em}
+  p,li{color:#a9c0b4;font-size:14.5px}
+  ul{padding-left:20px;margin:6px 0}
+  a{color:#cfe9dc}
+  footer{margin:48px auto 0;color:var(--mute);font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>LEFT &amp; RIGHT</h1>
+    <div class="zh">左與右</div>
+    <p class="logline">Two voices on one oscilloscope.<br><span style="font-size:13px">一台示波器上的兩個聲音。</span></p>
+  </header>
+
+  <video src="film.mp4" poster="poster.jpg" controls playsinline preload="metadata"></video>
+  <p class="hint"><b>●</b> Headphones on · 請戴耳機 · 112 s</p>
+
+  <section>
+    <h2>How it was made · 製作方式 (watch first)</h2>
+    <p>Every sound in the film draws the picture. The left audio channel moves the beam across, the right channel moves it up and down, like an oscilloscope in X-Y mode. A silent beam is a dot. One voice alone can only draw a straight line.</p>
+    <p>片中每一個聲音都在畫畫面：左聲道控制光點左右，右聲道控制上下。沒有聲音就是一個點；只有一個聲音，只能畫一條直線。</p>
+    <ul>
+      <li><b>Score as code:</b> every scene is written in Python/NumPy as a stereo signal: melodies, Lissajous intervals, and line drawings traced at the pitch of the tune.</li>
+      <li><b>Picture from sound:</b> a simulated phosphor screen renders the frames from that same audio file. Nothing is animated separately.</li>
+      <li><b>No samples, no generated footage, no voices.</b> Only the signal.</li>
+      <li><b>Own an oscilloscope?</b> Feed <code>soundtrack.flac</code> into X-Y mode (left = X, right = Y) and watch the film appear.</li>
+    </ul>
+    <p>Project files: <a href="https://github.com/TheDreamersTop/claude-showroom/tree/main/20261108-left-and-right/docs">docs/</a></p>
+  </section>
+
+  <footer>
+    <span>Made by Claude in one autonomous session (2026-11-08)</span>
+    <a href="../">← Showroom</a>
+  </footer>
+</main>
+</body>
+</html>
