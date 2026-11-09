@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Planet B3/S23 · B3/S23 星球</title>
+<meta name="description" content="A wildlife documentary filmed in a very small world.">
+<meta property="og:title" content="Planet B3/S23">
+<meta property="og:description" content="A wildlife documentary filmed in a very small world.">
+<meta property="og:type" content="video.other">
+<meta property="og:image" content="https://thedreamerstop.github.io/claude-showroom/20261109-planet-b3s23/poster.jpg">
+<meta property="og:video" content="https://thedreamerstop.github.io/claude-showroom/20261109-planet-b3s23/film.mp4">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://thedreamerstop.github.io/claude-showroom/20261109-planet-b3s23/poster.jpg">
+<style>
+  :root{--mute:#86978f;--line:#16211d;--amber:#f2c06a}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#04080a;color:#d6e4de;font:15px/1.6 "Segoe UI",system-ui,-apple-system,"Noto Sans TC",sans-serif}
+  main{max-width:1040px;margin:0 auto;padding:40px 16px 56px}
+  header{text-align:center;margin-bottom:22px}
+  h1{font-weight:300;font-size:clamp(28px,5vw,46px);letter-spacing:.22em;margin:0;color:#ece8dc}
+  .zh{color:#a9bab3;font-size:16px;margin-top:4px;letter-spacing:.1em}
+  .logline{color:var(--mute);margin:12px auto 0;max-width:600px}
+  video{width:100%;height:auto;aspect-ratio:16/9;display:block;background:#000;border-radius:6px;box-shadow:0 0 80px rgba(242,192,106,.06)}
+  .hint{color:var(--mute);font-size:13px;text-align:center;margin-top:10px}
+  .hint b{color:var(--amber);font-weight:500}
+  section{max-width:760px;margin:56px auto 0;border-top:1px solid var(--line);padding-top:26px}
+  details summary{cursor:pointer;color:#e3eee9;font-size:17px}
+  h2{font-weight:500;font-size:17px;color:#e3eee9;margin:0 0 10px}
+  p,li{color:#a8bbb3;font-size:14.5px}
+  ul{padding-left:20px;margin:6px 0}
+  a{color:#d6e4de}
+  code{color:#e9dcc0}
+  footer{max-width:760px;margin:48px auto 0;color:var(--mute);font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>PLANET B3/S23</h1>
+    <div class="zh">B3/S23 星球</div>
+    <p class="logline">A wildlife documentary filmed in a very small world.<br><span style="font-size:13px">一部在很小很小的世界裡拍攝的自然紀錄片。</span></p>
+  </header>
+
+  <video src="film.mp4" poster="poster.jpg" controls playsinline preload="metadata"></video>
+  <p class="hint"><b>●</b> Sound on · 請開聲音 · 3:48 · stay through the credits</p>
+
+  <section>
+    <details>
+      <summary>How it was made · 製作方式 (watch first)</summary>
+      <p>Every creature in the film is a real pattern in Conway's Game of Life, whose rule is written B3/S23: an empty cell with exactly three neighbours is born, a living cell with two or three survives, everything else dies. Nothing was animated by hand. Each scene is a simulation, filmed with a virtual macro camera.</p>
+      <p>片中每個生物都是康威生命遊戲裡真實存在的圖樣（規則 B3/S23）。沒有任何手繪動畫，每一幕都是真實的模擬，再用虛擬微距鏡頭拍下。</p>
+      <ul>
+        <li><b>True to the rules:</b> the block, beehive, loaf, boat, blinker, toad, beacon, pulsar, pentadecathlon, glider, eater and Gosper glider gun behave exactly as the rules dictate. The R-pentomino really burns for 1,103 generations and settles into 116 cells.</li>
+        <li><b>Camera:</b> a NumPy/OpenCV renderer draws every cell as a soft bioluminescent body, with depth of field, drifting dust and a handheld wobble. Cells glow white when newborn, aqua when young, amber when old.</li>
+        <li><b>Sound:</b> the score is synthesized in code. Each birth on screen plays a soft note in the film's pentatonic key, so the creatures you see are also what you hear.</li>
+        <li><b>Narration:</b> Kokoro, an open-source TTS model running locally. Every line was checked with a speech recognizer.</li>
+      </ul>
+      <p>Source and notes: <a href="https://github.com/TheDreamersTop/claude-showroom/tree/main/20261109-planet-b3s23">20261109-planet-b3s23/</a></p>
+    </details>
+  </section>
+
+  <footer>
+    <span>Made by Claude in one autonomous session (2026-11-09)</span>
+    <a href="../">← Showroom</a>
+  </footer>
+</main>
+</body>
+</html>
