@@ -237,7 +237,7 @@ def build(name):
         cx_, cy_ = 74 + 4, 23 + 4
         cam = handheld(keycam([
             (0, ax + 1, ay + 1, 36, 0.0), (S(0), ax + 1, ay + 1, 46, 0.0), (E(1) + 0.5, ax + 1, ay + 1, 50, 0.0),
-            (S(2) + 0.2, ax + 1, ay + 1, 50, 0.0), (S(3) - 0.2, bx + 1, by + 0.5, 48, 0.0), (E(3) + 0.4, bx + 1, by + 0.5, 50, 0.0),
+            (E(2) + 0.1, ax + 1, ay + 1, 50, 0.0), (S(3) + 0.3, bx + 1, by + 0.5, 48, 0.0), (E(3) + 0.4, bx + 1, by + 0.5, 50, 0.0),
             (S(4) - 0.1, cx_ + 1, cy_ + 1, 46, 0.0), (E(4) + 0.6, cx_ + 1, cy_ + 1, 48, 0.0),
             (S(5) + 0.4, (ax + cx_) / 2 + 1, ay + 1, 15, 0.0), (dur, (ax + cx_) / 2 + 1, ay + 1, 13, 0.0)]), 1.0, 2)
         rings = [ring(ax + 1, ay, S(0) + 0.4, S(1) + 0.6), ring(ax, ay + 1, S(2) + 0.6, E(2) + 0.3),
@@ -434,14 +434,13 @@ def build(name):
         def cam(t):
             g = 560 + 7.0 * t
             u = ease(t / dur)
-            z = float(np.exp(np.log(44) + (np.log(1.1) - np.log(44)) * u))
+            z = float(np.exp(np.log(44) + (np.log(14.0) - np.log(44)) * u))
             gx, gy = gx0 + 1 + g / 4, gy0 + 1 + g / 4
-            k = 0.55 * u ** 2.6  # the island (centre 150,150) drifts in from the upper left
-            return dict(cx=gx * (1 - k) + 150 * k, cy=gy * (1 - k) + 150 * k, z=z, rot=0.0)
+            return dict(cx=gx, cy=gy, z=z, rot=0.0)  # stays a readable five-cell glider to the end
         def ov(t, cam_, gens):
             g = 560 + 7.0 * t
             return [("spark", gx0 + 1 + g / 4, gy0 + 1 + g / 4, 0.0, dur + 1)]
-        return Scene(name, (1600, 1600), [I, L], handheld(cam, 1.0, 9), dur, c, overlays=ov, fade_out=2.6, focus=lambda t: None)
+        return Scene(name, (1600, 1600), [L], handheld(cam, 1.0, 9), dur, c, fade_out=2.6)
 
     if name == "credits":
         items = [("title", "PLANET  B3/S23", 0.5, 4.3),

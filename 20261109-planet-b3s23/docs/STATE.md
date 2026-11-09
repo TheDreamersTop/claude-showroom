@@ -32,5 +32,12 @@ Pivoted away from first idea (oscilloscope X-Y film) because the showroom alread
   sting gets the glider theme cut off by the crunch, 3 narration lines swapped (reviewer suggestions).
 - Kept the final "thriving" callback (reviewer suggested replacing; I judged the callback + sting stronger).
 
+## Delivered
+- v2 pushed 15:16 UTC (commit e22f976), Pages built, live film sha256 matches local. 88 MB, 3:48, -16 LUFS,
+  eater crunch verified on the contact frame (±50 ms).
+- Second fresh review of v2: ending glider read as a pixel + island read as clutter; 0:26 blank frame in rules.
+- v3 (in progress 15:30): ending stays on a readable glider (zoom 44→14, no island); rules scene holds on block
+  through "endures". Re-render law+end only, rebuild audio, re-encode, re-push.
+
 ## Next action
-When render done: python audio.py → python assemble.py v2 <crf> slow → check size <95 MB → review → deliver.
+When v3 assembled: check sheets/frames of law+end, loudness, push, verify live hash.

@@ -43,6 +43,9 @@ Everything shown is a true simulation of the rules. Nothing is hand-animated.
   across a held frame instead of sitting in the centre; larger counter, title and credits; three lines rewritten
   ("She has sent thousands. None have written."); the post-credits glider gets its theme back, cut off by the crunch.
 - The first encode was 1 GB because of heavy film grain; the grain was cut 4× and the film re-rendered.
+- A second independent review of v2 found the ending glider shrinking to a single pixel under the final line, and a
+  blank frame in the rules scene. v3 keeps the last glider a readable five-cell shape and holds on the block while the
+  rule is spoken.
 
 ## Files
 
