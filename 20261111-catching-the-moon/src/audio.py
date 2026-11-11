@@ -227,6 +227,8 @@ def build():
     # ---------------- ACT 1 boat song (3/4, bar = rowing stroke)
     # drone
     for bar in range(1, 11):
+        if bt(bar) >= T['shadow1'] - 0.6:
+            break
         put('music', zither(hz('D3'), 2.6, 0.7, 0.6), bt(bar), 0.8, -0.2)
         put('music', zither(hz('A3'), 2.0, 0.45, 0.6), bt(bar, 1), 0.7, -0.1)
         put('music', zither(hz('D4'), 1.6, 0.35, 0.6), bt(bar, 2), 0.6, 0.0)
@@ -246,26 +248,22 @@ def build():
     ]
     for m in mel:
         bar, beat, note, vel, bend, dur = m[:6]
+        if bar > 6:
+            continue
         vib = m[6] if len(m) > 6 else 0.12
         put('music', zither(hz(note), dur, vel, 1.0, bend=bend, vib=vib), bt(bar, beat), 1.0, 0.15)
     # scoop 1: a downward slide (the reflection slips away)
     put('music', zither(hz('A4'), 1.6, 0.8, 1.0, bend=-5, bend_at=0.08), T['scoop1'] + 0.05, 0.9, 0.3)
-    # scoop 2: bigger slide + low thunk
-    put('music', zither(hz('D5'), 2.0, 0.9, 1.0, bend=-9, bend_at=0.05), T['scoop2'] + 0.02, 0.9, 0.3)
-    put('music', zither(hz('D2'), 2.5, 1.0, 0.4), T['scoop2'] + 0.02, 0.8, 0.0)
-    # wobble (windmilling): rapid alternating notes
-    for k in range(6):
-        put('music', zither(hz(['E5', 'B4'][k % 2]), 0.5, 0.45, 1.0), T['scoop2'] + 0.55 + k * 0.14, 0.6, 0.3 * (-1) ** k)
     # reach for the moon: rising run then a hopeful held note, then deflation
     R = T['reach']
     for k, n_ in enumerate(['D4', 'E4', 'F#4', 'A4', 'B4', 'D5', 'E5']):
-        put('music', zither(hz(n_), 1.4, 0.55 + 0.06 * k, 1.0), R + 1.0 + k * 0.17, 0.85, 0.1 + 0.05 * k)
-    put('music', zither(hz('F#5'), 3.2, 0.9, 1.0, vib=0.25), R + 2.3, 0.9, 0.4)
-    put('music', bowed(hz('F#5'), 1.8, 0.5, vib=0.2), R + 2.4, 0.6, 0.4)
-    put('music', zither(hz('E5'), 1.4, 0.6, 0.8, bend=-2, bend_at=0.3), T['shadow1'] - 1.3, 0.8, 0.2)
-    put('music', zither(hz('A4'), 1.4, 0.55, 0.7, bend=-2, bend_at=0.4), T['shadow1'] - 0.7, 0.8, 0.1)
+        put('music', zither(hz(n_), 1.4, 0.55 + 0.06 * k, 1.0), R + 0.9 + k * 0.14, 0.85, 0.1 + 0.05 * k)
+    put('music', zither(hz('F#5'), 2.6, 0.9, 1.0, vib=0.25), R + 1.95, 0.9, 0.4)
+    put('music', bowed(hz('F#5'), 1.2, 0.5, vib=0.2), R + 2.0, 0.6, 0.4)
+    put('music', zither(hz('E5'), 1.2, 0.6, 0.8, bend=-2, bend_at=0.25), T['shadow1'] - 0.45, 0.8, 0.2)
+    put('music', zither(hz('A4'), 1.2, 0.55, 0.7, bend=-2, bend_at=0.3), T['shadow1'] + 0.05, 0.8, 0.1)
     # splashes
-    for t0, v in ((T['scoop1'] - 0.05, 0.8), (T['scoop2'], 1.0)):
+    for t0, v in ((T['scoop1'] - 0.05, 0.9),):
         sp_ = noise_burst(0.9, 400, 5000, a=0.004, d=0.18, vel=v)
         for _ in range(14):
             i = rng.integers(0, int(0.6 * SR))
@@ -381,14 +379,14 @@ def build():
     D = T['dark']
     cr = np.zeros(N)
     for c in range(5):
-        f0 = rng.uniform(4300, 5200)
+        f0 = rng.uniform(3800, 4700)
         per = rng.uniform(0.55, 0.85)
         t0 = D + 0.3 + rng.uniform(0, 1.0)
         pan = rng.uniform(-0.8, 0.8)
         y = np.zeros(N)
         tc = t0
         while tc < DUR - 0.5:
-            for p in range(rng.integers(3, 5)):
+            for p in range(rng.integers(2, 5)):
                 i = int((tc + p * 0.032) * SR)
                 nb = int(0.018 * SR)
                 if i + nb >= N:
@@ -399,7 +397,7 @@ def build():
         fade = np.clip((np.arange(N) / SR - t0) / 1.5, 0, 1) * np.clip((DUR - 1.0 - np.arange(N) / SR) / 3.0, 0, 1)
         y *= fade * rng.uniform(0.5, 1.0)
         a = (pan + 1) * np.pi / 4
-        stems['amb'] += (0.018 * np.stack([y * np.cos(a), y * np.sin(a)], 1)).astype(np.float32)
+        stems['amb'] += (0.011 * np.stack([y * np.cos(a), y * np.sin(a)], 1)).astype(np.float32)
     win = lp(load('window_open.wav'), 6000)
     win *= np.minimum(1, np.arange(len(win)) / (0.05 * SR)) * np.minimum(1, (len(win) - np.arange(len(win))) / (0.6 * SR))
     put('sfx', win.astype(np.float32), T['window'] - 0.5, 0.3, -0.4)
@@ -414,8 +412,11 @@ def build():
         put('music', zither(hz(n_), 3.5, 0.4, 0.3), W0 + k * 2.3 * slow * 0.66, 0.6, -0.2)
     # release: the moth's flight out, a rising line
     Rl = T['release'] + 1.2
+    put('perc', load('gong_short.wav') * 1.0, Rl + 2.8, 0.13, 0.0)
+    put('music', zither(hz('A5'), 4.0, 0.55, 0.4, harmonic=True), Rl + 2.85, 0.8, 0.0)
+    put('music', zither(hz('E6'), 4.0, 0.35, 0.4, harmonic=True), Rl + 3.1, 0.7, -0.1)
     for k, n_ in enumerate(['D5', 'E5', 'F#5', 'A5', 'B5', 'D6']):
-        put('music', zither(hz(n_), 3.0, 0.5, 0.4, harmonic=True), Rl + 0.6 + k * 0.55, 0.8, 0.3 - 0.15 * k)
+        put('music', zither(hz(n_), 3.0, 0.5, 0.4, harmonic=True), Rl + 4.0 + k * 0.45, 0.75, 0.1 - 0.15 * k)
     # final: he looks up into the moonlight
     put('perc', load('gong_short.wav') * 1.0, T['look'] + 2.6, 0.22, 0.0)
     g3 = load('gong_horst.wav')[:int(4.6 * SR)]
@@ -433,8 +434,9 @@ def build():
     tt3 = np.arange(nfl) / SR
     fl3 = bp(rng.standard_normal(nfl), 700, 4500) * (0.5 + 0.5 * np.sin(2 * np.pi * 11 * tt3)) ** 3 * np.sin(np.pi * tt3 / 0.95)
     put('flutter', fl3.astype(np.float32), ST + 0.55, 0.5, -0.2)
-    put('perc', woodblock(0.9, 0.9), ST + 3.2, 0.6, -0.1)
-    put('music', zither(hz('A3'), 1.2, 0.7, 0.8, bend=-3, bend_at=0.1), ST + 3.45, 0.8, 0.0)
+    sw2 = lp(rng.standard_normal(int(0.6 * SR)), 500) * np.sin(np.linspace(0, np.pi, int(0.6 * SR))) ** 2
+    put('sfx', sw2.astype(np.float32), ST + 1.5, 0.5, -0.3)
+    put('perc', woodblock(0.9, 0.9), ST + 2.35, 0.7, -0.1)
 
 
 def mixdown():
@@ -457,7 +459,7 @@ def mixdown():
     mix = mix + 0.32 * wet
     # silence after the end
     end = int(T['sting_end'] * SR)
-    fo = int(0.6 * SR)
+    fo = int(0.04 * SR)
     mix[end - fo:end] *= np.linspace(1, 0, fo)[:, None] ** 1.5
     fade = np.ones(N)
     fade[end:] = 0

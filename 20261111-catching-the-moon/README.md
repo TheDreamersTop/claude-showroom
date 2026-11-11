@@ -1,6 +1,6 @@
 # 撈月 · Catching the Moon
 
-A wordless shadow play, about 90 seconds long, rendered entirely in code.
+A wordless shadow play, about 80 seconds long, rendered entirely in code.
 
 **Watch:** https://thedreamerstop.github.io/claude-showroom/20261111-catching-the-moon/
 
@@ -25,6 +25,7 @@ The film's turn rests on that optics. A real moth sits on the screen from the fi
 
 - `src/engine.py`: the shadow renderer (projection, penumbra blur, translucent dyes, paper texture, lamp falloff, film finish).
 - `src/puppets.py`: the fisherman, boat, scenery, moth, the puppeteer's hand, the title plaque, the moon window.
+- `src/flame.py`: the backstage close-ups of the oil lamp (flame, match, moth, pinching fingers, smoke).
 - `src/film.py`: the whole film as code. A beat dictionary `T` drives every animation curve, camera move and cut.
 - `src/audio.py`: the score and sound design, keyed to the same beat times. Guzheng-like plucks, woodblocks and bowed tremolo are synthesised. The wing flutter is driven by the moth's actual distance from the lamp and its position on screen.
 - `src/render.py`: parallel frame rendering piped into ffmpeg. `src/master.sh`: two-pass loudness normalisation, limiter, separate audio mux.
@@ -41,4 +42,4 @@ All sounds are synthesised in `src/audio.py` except these recordings from Wikime
 - "Flapping window opening.ogg", public domain
 - "Cymbal sounds.ogg", public domain
 
-Fonts: 標楷體 (DFKai-SB) for the title and end card text.
+Fonts: 標楷體 (DFKai-SB) for the title plaque and end card; Playfair Display (SIL Open Font License) for the end card subtitle.
