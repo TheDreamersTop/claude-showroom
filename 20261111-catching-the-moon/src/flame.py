@@ -135,7 +135,12 @@ def hand_layer(x, y, pinch, blur):
         cv2.circle(m, tuple(P([c])[0]), int(r * k * 16), 255, -1, cv2.LINE_AA, 4)
     palm = [(5.8, 6.2), (6.8, 1.6), (8.0, -0.6), (11.5, 0.8), (14.5, 4.5), (13.5, 10.5), (9.0, 9.0)]
     cv2.fillPoly(m, [P(catmull(palm, n=5))], 255, cv2.LINE_AA, 4)
-    cv2.line(m, tuple(P([(13.0, 6.5)])[0]), tuple(P([(36.0, 20.0)])[0]), 255, int(7.0 * k), cv2.LINE_AA, 4)
+    # knuckles along the back of the hand
+    for c, r in (((7.0, 6.6), 0.9), ((8.4, 7.6), 0.85), ((9.8, 8.6), 0.8)):
+        cv2.circle(m, tuple(P([c])[0]), int(r * k * 16), 255, -1, cv2.LINE_AA, 4)
+    # a loose cloth sleeve with a ragged hem from the wrist up out of frame
+    sleeve = [(12.2, 11.4, 'c'), (13.6, 9.6), (12.8, 8.0), (14.6, 6.4), (14.0, 4.4), (15.6, 2.6, 'c'), (44, 6, 'c'), (42, 36, 'c')]
+    cv2.fillPoly(m, [P(catmull(sleeve, n=5))], 255, cv2.LINE_AA, 4)
     a = m.astype(np.float32) / 255
     if blur > 0.5:
         a = engine.blur_img(a, blur * S, blur * S)

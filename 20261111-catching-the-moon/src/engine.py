@@ -81,7 +81,7 @@ class Shape:
 
 # ---------------------------------------------------------------- light models
 class Lamp:
-    def __init__(self, x=0.0, y=6.0, L=150.0, size=1.8, power=1.0, color=(1.0, 0.80, 0.52)):
+    def __init__(self, x=0.0, y=6.0, L=150.0, size=1.8, power=1.0, color=(1.0, 0.74, 0.42)):
         self.x, self.y, self.L, self.size, self.power, self.color = x, y, L, size, power, color
 
     def project(self, P, z):
