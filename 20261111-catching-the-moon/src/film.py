@@ -9,10 +9,10 @@ DUR = 71.0
 
 # ------------------------------------------------------------------ beat times (seconds)
 T = dict(
-    strike=0.6, open_cut=2.8, title_pull=4.8, set_in=6.4, boat_in=8.4, boat_stop=12.6,
-    notice=13.0, scoop1=15.6, reach=18.8, shadow1=22.0, land=29.2,
-    takeoff=34.4, bumps=37.0, bumps_end=38.8, catch=41.2, hand=43.8, dark=47.6, window=48.2,
-    release=53.4, look=59.4, fade=60.8, card=62.2, end=66.0, sting=66.6, sting_end=70.4)
+    strike=0.6, open_cut=2.8, title_pull=4.8, set_in=5.8, boat_in=7.8, boat_stop=11.0,
+    notice=11.4, scoop1=14.0, reach=17.2, shadow1=20.4, land=26.6,
+    takeoff=31.8, bumps=34.4, bumps_end=36.2, catch=38.4, hand=41.0, dark=44.8, window=45.4,
+    release=50.6, look=57.2, fade=58.8, card=60.2, end=64.4, sting=65.0, sting_end=70.6)
 BUMP_DUR = T['bumps_end'] - T['bumps']
 PLANT0 = np.array([-48.0, 30.0])     # the real moth sits on the screen from the start
 PLANT1 = np.array([-30.0, 27.0])
@@ -117,10 +117,10 @@ MOTH_KEYS = [
     (SH_ + 1.8, (-15, 20, 104)),
     (SH_ + 2.6, (4, 16, 126)),
     (SH_ + 3.6, (62, 14, 124)),
-    (SH_ + 4.4, (20, 32, 100)),
-    (SH_ + 5.3, (8, 40, 58)),
-    (SH_ + 6.2, (52, 30, 16)),
-    (SH_ + 6.8, (MOON_C[0] - 5, MOON_C[1] - 1, 3.5)),
+    (SH_ + 4.3, (20, 32, 100)),
+    (SH_ + 5.0, (8, 40, 58)),
+    (SH_ + 5.6, (52, 30, 16)),
+    (SH_ + 6.0, (MOON_C[0] - 5, MOON_C[1] - 1, 3.5)),
     (T['land'], (MOON_C[0], MOON_C[1] - 0.5, 0.3)),
     (T['takeoff'], (MOON_C[0], MOON_C[1] - 0.5, 0.3)),
     (T['takeoff'] + 0.45, (31, 26, 1.0)),
@@ -179,13 +179,15 @@ def moth_state(t):
         z = 128 + 10.0 * np.sin(2 * np.pi * 1.15 * u) * (0.65 + 0.35 * nz(u, 16))
         return sx, sy, z, np.arccos(0.75 + 0.25 * np.cos(t * 2 * np.pi * 7.5)), 0.3 * nz(u * 3, 17), 0.62
     # swoop down toward the screen to be caught
-    keys = [(T['bumps_end'], (4 + 18 * nz(BUMP_DUR * 1.1, 14), 10 + 12 * nz(BUMP_DUR * 1.3, 15), 131.0)),
-            (T['catch'] - 2.0, (-24, 14, 80)), (T['catch'] - 1.0, (2, 4, 18)),
+    keys = [(T['bumps_end'], (-4.0, 12.0, 128.0)), (T['bumps_end'] + 0.6, (0, 18, 92)), (T['catch'] - 1.0, (10, 12, 26)),
             (T['catch'] - 0.35, tuple(net_center(T['catch']) + [-7.0, 2.0]) + (3.0,)),
             (T['catch'], tuple(net_center(T['catch'])) + (0.6,))]
     if t < T['catch']:
         v = spline(t, keys)
-        return v[0], v[1], v[2], np.arccos(0.6 + 0.4 * np.cos(t * 2 * np.pi * 7.0)), 0.2, 0.62
+        u = t - T['bumps_end']
+        tumble = 5.5 * u + 0.6 * np.sin(u * 9)                 # singed: it falls, turning over
+        flap = np.arccos(0.7 + 0.3 * np.cos(t * 2 * np.pi * 4.0)) if int(t * 6) % 3 else 0.2
+        return v[0], v[1], v[2], flap, tumble, 0.62
     return 'net'
 
 
@@ -269,14 +271,16 @@ def pose_keys():
     add(RL + 1.0, tool_rot=0.80)                                                         # a gentle shake: go on
     add(RL + 1.25, tool_rot=0.87, head=0.45)
     add(RL + 2.6, head=0.6, lean=-0.08)                                                 # watches it climb into the light
-    add(RL + 4.3, head=0.72, lean=-0.1, aNs=1.55, aNe=0.55, tool_rot=0.87)             # holds it up, an offering
-    add(RL + 5.4, head=0.74, lean=-0.1, aNs=0.6, aNe=1.25, tool_rot=0.25)              # stands the net upright
+    add(RL + 5.2, head=0.72, lean=-0.1, aNs=1.55, aNe=0.55, tool_rot=0.87)             # holds it up, an offering
+    add(RL + 6.2, head=0.76, lean=-0.1, aNs=0.6, aNe=1.25, tool_rot=0.25)              # stands the net upright
     add(T['look'], head=0.76, lean=-0.1, aNs=0.6, aNe=1.25, tool_rot=0.25)
     add(T['look'] + 2.0, head=0.8, lean=-0.12, aNs=0.6, aNe=1.25, tool_rot=0.25)       # still looking up
     ST = T['sting']
     add(ST - 0.5, head=0.0, lean=0.05, aNs=0.6, aNe=1.25, aFs=-0.45, aFe=0.5, tool_rot=0.3, crouch=0.0, jump=0.0, tiptoe=0.0)
     add(ST + 1.9, head=0.05, lean=0.05)
     add(ST + 2.7, head=0.6, lean=-0.12)                                  # looks up: it's back in the moon
+    add(ST + 3.8, head=0.62, lean=-0.12)
+    add(ST + 4.4, head=0.4, lean=0.0)                                    # and smiles, more or less
     return k
 
 
@@ -442,11 +446,11 @@ def scene(t):
     lamp = lamp_at(t)
     # title plaque: on the bare screen, then pulled back toward the lamp
     if t < T['title_pull'] + 2.2:
-        u = (t - T['title_pull']) / 2.0
-        z = 0.5 + 125 * ss(u) ** 1.6 if t > T['title_pull'] else 0.5
-        S = (0.0, 4.0 + 3 * ss(u))
+        u = (t - T['title_pull']) / 0.8
+        z = 0.5
+        S = (0.0, 4.0 - 80 * ss(u) ** 1.5)
         wpos = scr2world(S, z)
-        shapes += P.title_plaque(wpos[0], wpos[1], z, scale=1.0, rot=0.06 * ss(u))
+        shapes += P.title_plaque(wpos[0], wpos[1], z, scale=1.0, rot=0.04 * ss(u))
         shapes.append(P.rod((wpos[0] - 6, wpos[1] - 12), z=z + 1.5))
     # set pieces slide in
     si = T['set_in']
@@ -515,7 +519,7 @@ def scene(t):
         u = t - T['hand']
         nc = net_center(T['hand'] + 1.0)
         H, D = T['hand'], T['dark']
-        S = kf(t, [(H, (nc[0] + 4, 100)), (H + 1.0, (nc[0] - 1, nc[1] + 15)), (H + 1.45, (nc[0], nc[1] + 17)), (H + 1.6, (nc[0] + 1, nc[1] + 21)),
+        S = kf(t, [(H, (nc[0] + 4, 100)), (H + 1.0, (nc[0] - 1, nc[1] + 12.5)), (H + 1.45, (nc[0], nc[1] + 13.5)), (H + 1.65, (nc[0] + 1, nc[1] + 19)),
                    (D - 1.6, (nc[0] + 10, nc[1] + 60))])
         z = float(kf(t, [(H, 40.0), (H + 1.6, 41.0), (D - 1.6, 90.0)], ease=lambda x: lin(x) ** 1.4))
         wp = scr2world(S, z)
@@ -584,8 +588,13 @@ def cutaway(t):
         st['moth'] = rel(*p) + (np.arccos(0.6 + 0.4 * np.cos(u * 2 * np.pi * 9)), 0.4 * np.sin(u * 3), 16.0 * S)
         flick = 0.3
     elif kind == 'bump':
-        p = spline(u, [(0.0, (-260, -330)), (0.4, (12, -150)), (0.8, (150, -270)), (1.2, (-14, -140)), (1.8, (-230, -320))])
-        st['moth'] = rel(*p) + (np.arccos(0.6 + 0.4 * np.cos(u * 2 * np.pi * 10)), 0.5 * np.sin(u * 4), 16.0 * S)
+        p = spline(u, [(0.0, (-260, -330)), (0.4, (12, -150)), (0.8, (150, -270)), (1.2, (-14, -140)), (1.45, (-46, -70)), (1.8, (-110, 320))])
+        rot = 0.5 * np.sin(u * 4) + (max(0.0, u - 1.2) * 9.0)
+        st['moth'] = rel(*p) + (np.arccos(0.6 + 0.4 * np.cos(u * 2 * np.pi * 10)) if u < 1.2 else 0.25, rot, 16.0 * S)
+        if u >= 1.2:   # embers on the singed wing
+            mxp, myp = rel(*p)
+            st['sparks'] = (st.get('sparks') or []) + [(mxp + (30 - 22 * k) * S + 14 * S * np.sin(u * 20 + k), myp + (8 * k - 40 * (u - 1.2) * k) * S,
+                                                       max(0.0, 1.0 - (u - 1.2) * 1.6)) for k in range(4)]
         fl = 0.0
         for tb in (0.4, 1.2):
             if u >= tb:
@@ -594,7 +603,7 @@ def cutaway(t):
         st['sparks'] = [rel(10 + 160 * (u - 0.4) * np.cos(k * 1.7), -170 - 200 * (u - 0.4) + 60 * np.sin(k)) + (max(0, 1 - (u - 0.4) * 2.5),)
                         for k in range(5)] if 0.4 <= u < 0.8 else None
         if u >= 1.2:
-            st['smoke'] = (0.35 * np.exp(-(u - 1.2) * 1.5), (u - 1.2) * 0.8)
+            st['smoke'] = (0.5 * np.exp(-(u - 1.2) * 1.2), (u - 1.2) * 0.8)
         flick = 0.5
     elif kind == 'pinch':
         hp = kf(u, [(0.0, rel(700, -760)), (1.0, rel(4, -70))], ease=lambda x: 1 - (1 - lin(x)) ** 2.5)
@@ -617,22 +626,22 @@ def moon_cam(t):
         return (24.0, 6.0, 1.3)
     R = T['release']
     nc = net_center(R + 1.2)
-    keys = [(T['dark'], (WIN_C[0], WIN_C[1] + 2, 1.0)), (T['window'] + 3.2, (WIN_C[0], WIN_C[1] + 2, 1.02)),
-            (R - 0.5, (0.5 * nc[0] + 0.5 * WIN_C[0], nc[1] + 2, 1.45)), (R + 1.6, (0.6 * nc[0] + 0.4 * WIN_C[0], nc[1] + 6, 1.55)),
-            (R + 3.6, (MOON_HOVER[0] + 4, MOON_HOVER[1] - 8, 1.6)), (R + 5.6, (MOON_HOVER[0] - 6, MOON_HOVER[1] - 6, 1.4)),
-            (T['look'], (WIN_C[0] + 2, WIN_C[1] + 3, 1.12)), (T['fade'] + 1.4, (WIN_C[0] + 5, WIN_C[1] + 1, 1.32))]
+    keys = [(T['dark'], (WIN_C[0], WIN_C[1] + 2, 1.0)), (T['window'] + 2.8, (WIN_C[0], WIN_C[1] + 2, 1.04)),
+            (R - 0.4, (0.7 * nc[0] + 0.3 * WIN_C[0], nc[1] + 1, 1.9)), (R + 1.6, (0.75 * nc[0] + 0.25 * MOON_HOVER[0], nc[1] + 5, 2.0)),
+            (R + 4.0, (MOON_HOVER[0], MOON_HOVER[1] - 3, 2.3)), (R + 5.6, (MOON_HOVER[0] - 2, MOON_HOVER[1] - 4, 2.2)),
+            (T['look'], (WIN_C[0] + 2, WIN_C[1] + 3, 1.15)), (T['fade'] + 1.4, (WIN_C[0] + 4, WIN_C[1] + 1, 1.3))]
     return tuple(spline(t, keys))
 
 
-MOON_HOVER = np.array([8.0, 22.0])
+MOON_HOVER = np.array([12.0, 19.0])
 
 
 def moon_moth(t):
     v = t - T['release'] - 1.2
     nc = net_center(T['release'] + 1.2)
     hx, hy = MOON_HOVER
-    keys = [(0.0, (nc[0], nc[1], 0.6)), (1.0, (nc[0] - 5, nc[1] + 8, 2)), (2.2, (hx + 6, hy - 3, 4)), (2.8, (hx, hy, 5)),
-            (3.8, (hx - 1, hy + 1, 5.5)), (5.0, (hx - 18, hy + 12, 12)), (6.4, (-40, 42, 30)), (8.4, (-80, 70, 60))]
+    keys = [(0.0, (nc[0], nc[1], 0.6)), (1.0, (nc[0] - 5, nc[1] + 8, 2)), (2.2, (hx + 5, hy - 3, 4)), (2.8, (hx, hy, 5)),
+            (4.4, (hx - 1.5, hy + 1.5, 5.5)), (5.6, (hx - 18, hy + 14, 12)), (7.0, (-40, 44, 30)), (9.0, (-80, 70, 60))]
     sx, sy, z = spline(v, keys)
     return sx + 2.5 * nz(t * 3, 41), sy + 2.0 * nz(t * 3.3, 42), z
 
@@ -643,7 +652,7 @@ def moon_moth_xy(t):
 
 def exposure(t):
     if t >= T['sting']:
-        return 1.0 if t < T['sting_end'] else 0.0
+        return 1.0 - ss((t - (T['sting_end'] - 1.5)) / 1.5)
     return 1.0 - ss((t - T['fade']) / 1.4)
 
 

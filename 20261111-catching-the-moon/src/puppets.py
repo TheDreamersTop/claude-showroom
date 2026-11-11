@@ -3,8 +3,8 @@ import numpy as np, cv2
 from engine import Shape, catmull, circle, ellipse, mat, apply
 
 # ---------------------------------------------------------------- palette (transmittance)
-GREEN = (0.32, 0.66, 0.40)
-GREEN_D = (0.24, 0.52, 0.30)
+GREEN = (0.26, 0.58, 0.33)
+GREEN_D = (0.19, 0.44, 0.25)
 RED = (0.92, 0.28, 0.14)
 YELLOW = (0.95, 0.78, 0.32)
 STRAW = (0.88, 0.66, 0.28)
@@ -161,11 +161,15 @@ def fisherman(x, y, z=0.6, rot=0.0, lean=0.0, head=0.0, armN=(0.4, -0.6), armF=(
     hands = []
     arm_shapes = []
     for i, (sh, el) in enumerate((armF, armN)):
-        dye_s = (0.40, 0.72, 0.50) if i == 0 else GREEN     # far arm lighter so overlaps stay readable
+        dye_s = (0.33, 0.64, 0.42) if i == 0 else GREEN     # far arm lighter so overlaps stay readable
         SM = torsoM @ mat(1.6, 10.6, sh)
         part = [leather(g['uarm'], SM, z, dye_s)]
         EM = SM @ mat(0.2, -5.1, el)
+        # riveted joints, as on real leather puppets: discs at shoulder and elbow keep the limb whole at any angle
+        part.append(Shape(apply(SM, circle(0, 0, 1.15, 20)), z=z, dye=dye_s, edge=0.18, edge_t=EDGE_T))
+        part.append(Shape(apply(EM, circle(0, 0, 1.05, 20)), z=z, dye=dye_s, edge=0.18, edge_t=EDGE_T))
         part.append(leather(g['farm'], EM, z, dye_s))
+        part.append(Shape(apply(EM, circle(0, 0, 0.28, 10)), z=z, dye=DARK))
         part.append(leather(g['cuff'], EM, z, YELLOW if i else (0.8, 0.62, 0.25), edge=0.18))
         HM = EM @ mat(0.15, -4.9, 0)
         part.append(Shape(apply(HM, g['hand']), z=z, dye=FACE, edge=0.2, edge_t=EDGE_T))
@@ -538,8 +542,8 @@ def title_plaque(x, y, z, scale=1.0, rot=0.0):
     out = []
     plate = catmull([(-30, -13, 'c'), (30, -13, 'c'), (32, -11), (32, 11), (30, 13, 'c'), (-30, 13, 'c'), (-32, 11), (-32, -11)], n=4)
     o_big, h_big = text_polys('撈月', height=13.0)
-    o_sm, h_sm = text_polys('CATCHING  THE  MOON', font='kaiu.ttf', height=3.2)
-    holes = [g + [0, 2.2] for g in o_big] + [g + [0, -9.0] for g in o_sm]
+    o_sm, h_sm = text_polys('Catching the Moon', font='PlayfairDisplay-Italicwght.ttf', height=4.2)
+    holes = [g + [0, 2.6] for g in o_big] + [g + [0, -8.4] for g in o_sm]
     # border dots
     for xx in np.arange(-28, 28.1, 2.0):
         holes.append(circle(xx, 11.2, 0.35, 8))
@@ -547,9 +551,9 @@ def title_plaque(x, y, z, scale=1.0, rot=0.0):
     out.append(Shape(apply(M, plate), z=z, dye=RED, edge=0.5, edge_t=EDGE_T, holes=[apply(M, h) for h in holes]))
     # islands inside letters (counters) are leather again
     for g in h_big:
-        out.append(Shape(apply(M, g + [0, 2.2]), z=z, dye=RED))
+        out.append(Shape(apply(M, g + [0, 2.6]), z=z, dye=RED))
     for g in h_sm:
-        out.append(Shape(apply(M, g + [0, -9.0]), z=z, dye=RED))
+        out.append(Shape(apply(M, g + [0, -8.4]), z=z, dye=RED))
     return out
 
 

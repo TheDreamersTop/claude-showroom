@@ -1,6 +1,6 @@
 # 撈月 · Catching the Moon
 
-A wordless shadow play, about 80 seconds long, rendered entirely in code.
+A wordless shadow play, about 70 seconds long, rendered entirely in code.
 
 **Watch:** https://thedreamerstop.github.io/claude-showroom/20261111-catching-the-moon/
 
@@ -31,6 +31,20 @@ The film's turn rests on that optics. A real moth sits on the screen from the fi
 - `src/render.py`: parallel frame rendering piped into ffmpeg. `src/master.sh`: two-pass loudness normalisation, limiter, separate audio mux.
 
 Made in one overnight session on a laptop CPU (no GPU).
+
+## How it got here
+
+Each cut was watched by a fresh, independent reviewer (frame contact sheets plus loudness and spectrum analysis), then compared head to head with the previous one. Only winners were published.
+
+| Version | What changed | Result |
+|---|---|---|
+| rough1 | First full cut, 101 s | 5/10: the moth was never set up |
+| v4 | Real moth planted on the screen, round moon window, 91 s | 5/10: nobody understood there was a lamp behind the screen |
+| v5 | Backstage close-ups of the oil lamp | beat v4 8-2 |
+| v6 | One scoop, continuous moonlight shot, moth hovers in the light | beat v5 7-3 |
+| v7 | The release becomes his gesture; puppet parts layer like stacked cut-outs | beat v6 6-4 |
+| v8 | Puppeteer's hand restored, warmer grade, the moth returns to the moon in the coda | beat v7 6-4 |
+| v9 | The moth singes a wing and falls into his net, so the snuffed lamp reads as a rescue; push-in on the release; riveted joints | beat v8 6-4 (6.5/10 solo) |
 
 ## Sound credits
 
