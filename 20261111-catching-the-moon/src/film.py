@@ -5,14 +5,14 @@ import puppets as P
 import engine
 
 FPS = 24
-DUR = 91.4
+DUR = 89.4
 
 # ------------------------------------------------------------------ beat times (seconds)
 T = dict(
-    strike=0.7, title_pull=4.0, set_in=5.6, boat_in=8.4, boat_stop=15.0,
-    notice=15.5, scoop1=19.1, scoop2=23.9, reach=27.0, shadow1=30.6, land=39.6,
-    takeoff=45.6, bumps=49.1, bumps_end=54.0, catch=56.6, hand=59.2, dark=62.0, window=63.6,
-    release=70.0, look=75.6, fade=80.0, card=81.4, end=86.0, sting=86.6, sting_end=91.0)
+    strike=0.6, open_cut=2.8, title_pull=5.6, set_in=7.2, boat_in=9.4, boat_stop=14.8,
+    notice=15.2, scoop1=18.0, scoop2=21.8, reach=24.6, shadow1=27.8, land=36.4,
+    takeoff=41.6, bumps=45.1, bumps_end=50.6, catch=53.2, hand=55.8, dark=60.4, window=61.8,
+    release=68.0, look=73.4, fade=77.4, card=78.8, end=83.4, sting=84.0, sting_end=89.0)
 BUMP_DUR = T['bumps_end'] - T['bumps']
 PLANT0 = np.array([-48.0, 30.0])     # the real moth sits on the screen from the start
 PLANT1 = np.array([-30.0, 27.0])
@@ -78,7 +78,7 @@ def lamp_at(t):
     if t < T['strike']:
         return Lamp(power=0.0)
     # match flare then flame catching
-    p = 1.12 * ss((t - T['strike'] - 0.25) / 1.8)
+    p = 1.12 * ss((t - T['strike'] - 0.2) / 1.6)
     flare = 0.5 * np.exp(-max(t - T['strike'], 0) * 6.0) if t >= T['strike'] else 0
     fl = 1 + 0.035 * nz(t * 4.0, 1) + 0.02 * nz(t * 11.0, 2)
     jx, jy = 0.18 * nz(t * 6, 3), 0.25 * nz(t * 5, 4)
@@ -114,10 +114,10 @@ MOTH_KEYS = [
     (SH_, (PLANT1[0], PLANT1[1], 0.3)),
     (SH_ + 0.45, (PLANT1[0] + 2, PLANT1[1] + 3, 3.0)),
     (SH_ + 1.0, (PLANT1[0] + 6, PLANT1[1], 30.0)),
-    (SH_ + 1.8, (-15, 20, 112)),
-    (SH_ + 2.6, (4, 14, 139)),
-    (SH_ + 3.6, (72, 14, 136)),
-    (SH_ + 4.5, (30, 28, 127)),
+    (SH_ + 1.8, (-15, 20, 104)),
+    (SH_ + 2.6, (4, 16, 126)),
+    (SH_ + 3.6, (62, 14, 124)),
+    (SH_ + 4.5, (30, 28, 118)),
     (SH_ + 5.4, (-32, 30, 100)),
     (SH_ + 6.4, (8, 40, 58)),
     (SH_ + 7.5, (52, 30, 16)),
@@ -145,9 +145,9 @@ def plant_pos(t):
 def moth_state(t):
     """(screen x, screen y, z, flap, rot, scale)."""
     if t >= T['sting']:
-        if t < T['sting'] + 1.3:
+        if t < T['sting'] + 1.5:
             return None
-        v = spline(t, [(T['sting'] + 1.3, (-200, 34, 133)), (T['sting'] + 2.4, (-6, 24, 128)), (T['sting'] + 3.6, (28, 18, 126)), (T['sting_end'], (36, 20, 125))])
+        v = spline(t, [(T['sting'] + 1.5, (-150, 34, 122)), (T['sting'] + 2.5, (-6, 24, 118)), (T['sting'] + 3.5, (28, 18, 116)), (T['sting_end'], (36, 20, 115))])
         return v[0], v[1], v[2], np.arccos(0.62 + 0.38 * np.cos(t * 2 * np.pi * 7.0)), 0.2 * nz(t, 60), 0.62
     if t < MOTH_KEYS[0][0]:
         p, crawling = plant_pos(t)
@@ -162,8 +162,8 @@ def moth_state(t):
         if resting:
             # slow wing breathing while resting
             ph = 0.35 + 0.35 * (0.5 + 0.5 * np.sin((t - T['land']) * 1.3))
-            if T['land'] + 3.2 < t < T['land'] + 4.6:
-                ph = 0.2 + 1.0 * np.sin(np.pi * (t - T['land'] - 3.2) / 1.4)  # a big slow flex
+            if T['land'] + 2.0 < t < T['land'] + 3.2:
+                ph = 0.2 + 1.0 * np.sin(np.pi * (t - T['land'] - 2.0) / 1.2)  # a big slow flex
             return sx, sy, z, ph, 0.0, 0.62
         flap = np.arccos(0.62 + 0.38 * np.cos(t * 2 * np.pi * 7.0))
         sx += 4.0 * nz(t * 3, 11) * (1 + z / 40)
@@ -173,7 +173,7 @@ def moth_state(t):
         u = t - T['bumps']
         sx = 4 + 18 * nz(u * 1.1, 14)
         sy = 10 + 12 * nz(u * 1.3, 15)
-        z = 134 + 11.0 * np.sin(2 * np.pi * 1.15 * u) * (0.65 + 0.35 * nz(u, 16))
+        z = 128 + 10.0 * np.sin(2 * np.pi * 1.15 * u) * (0.65 + 0.35 * nz(u, 16))
         return sx, sy, z, np.arccos(0.75 + 0.25 * np.cos(t * 2 * np.pi * 7.5)), 0.3 * nz(u * 3, 17), 0.62
     # swoop down toward the screen to be caught
     keys = [(T['bumps_end'], (4 + 18 * nz(BUMP_DUR * 1.1, 14), 10 + 12 * nz(BUMP_DUR * 1.3, 15), 131.0)),
@@ -219,9 +219,9 @@ def pose_keys():
     add = lambda tt, **kw: k.append((tt, kw))
     add(0.0)
     add(T['notice'] + 0.0, head=0.0)
-    add(T['notice'] + 0.8, head=-0.32, lean=0.12)                 # notices reflection
-    add(T['notice'] + 1.8, head=-0.36, lean=0.15)
-    add(T['notice'] + 2.4, head=0.12, lean=0.0)                   # glance up at the moon
+    add(T['notice'] + 0.6, head=-0.32, lean=0.12)                 # notices reflection
+    add(T['notice'] + 1.2, head=-0.36, lean=0.15)
+    add(T['notice'] + 1.7, head=0.12, lean=0.0)                   # glance up at the moon
     add(S1 - 0.9, head=-0.3, lean=0.05, aNs=0.9, aNe=0.9, tool_rot=1.2)   # wind-up
     add(S1 - 0.15, head=-0.35, lean=0.32, aNs=1.25, aNe=0.15, tool_rot=2.45, crouch=0.15)  # plunge
     add(S1 + 0.5, head=-0.35, lean=0.35, aNs=1.25, aNe=0.15, tool_rot=2.5, crouch=0.15)
@@ -235,20 +235,20 @@ def pose_keys():
     add(S2 + 1.3, head=-0.2, lean=0.4, aNs=0.8, aNe=0.4, tool_rot=1.9, aFs=2.2, aFe=0.6)
     add(S2 + 1.9, head=0.0, lean=0.05, aNs=0.7, aNe=1.1, tool_rot=0.5, aFs=-0.45, aFe=0.5)    # recovers
     add(R - 0.2, head=0.0, lean=0.0)
-    add(R + 0.8, head=0.55, lean=-0.1)                                 # looks up at the moon
-    add(R + 1.6, head=0.55, lean=-0.12, aNs=2.5, aNe=0.15, tool_rot=0.45, aFs=0.4)  # reach
-    add(R + 2.4, head=0.6, lean=-0.16, aNs=2.65, aNe=0.05, tool_rot=0.42, tiptoe=2.2, aFs=1.0, aFe=0.3)
-    add(R + 3.4, head=0.62, lean=-0.18, aNs=2.7, aNe=0.0, tool_rot=0.40, tiptoe=2.6, aFs=1.1, aFe=0.3)
+    add(R + 0.6, head=0.55, lean=-0.1)                                 # looks up at the moon
+    add(R + 1.2, head=0.55, lean=-0.12, aNs=2.5, aNe=0.15, tool_rot=0.45, aFs=0.4)  # reach
+    add(R + 1.9, head=0.6, lean=-0.16, aNs=2.65, aNe=0.05, tool_rot=0.42, tiptoe=2.2, aFs=1.0, aFe=0.3)
+    add(R + 2.6, head=0.62, lean=-0.18, aNs=2.7, aNe=0.0, tool_rot=0.40, tiptoe=2.6, aFs=1.1, aFe=0.3)
     add(SH - 0.3, head=0.2, lean=0.12, aNs=0.7, aNe=1.15, tool_rot=0.3, tiptoe=0.0, aFs=-0.45, aFe=0.5)  # slump
     add(SH + 1.2, head=0.3, lean=0.05)
     add(SH + 2.0, head=0.55, lean=-0.12)                                # looks up as the shadow swells
     add(SH + 2.8, head=0.6, lean=-0.28, aFs=1.5, aFe=1.7)              # recoils, arm up
     add(SH + 3.9, head=-0.45, lean=0.55, crouch=1.0, aFs=2.6, aFe=2.2, aNs=0.4, aNe=1.6, tool_rot=0.5)  # ducks, arm over hat
-    add(L + 1.6, head=-0.45, lean=0.55, crouch=1.0, aFs=2.6, aFe=2.2, aNs=0.4, aNe=1.6, tool_rot=0.5)
-    add(L + 2.6, head=0.2, lean=0.25, crouch=0.6, aFs=1.6, aFe=1.8)     # peeks
-    add(L + 3.4, head=0.42, lean=0.1, crouch=0.2, aFs=0.0, aFe=0.8, aNs=0.6, aNe=1.2, tool_rot=0.35)
-    add(L + 4.4, head=0.55, lean=0.0, crouch=0.0)                       # sees the tiny moth in the moon
-    add(L + 4.9, head=0.75, lean=-0.05)                                 # head tilt
+    add(L + 1.2, head=-0.45, lean=0.55, crouch=1.0, aFs=2.6, aFe=2.2, aNs=0.4, aNe=1.6, tool_rot=0.5)
+    add(L + 2.0, head=0.2, lean=0.25, crouch=0.6, aFs=1.6, aFe=1.8)     # peeks
+    add(L + 2.6, head=0.42, lean=0.1, crouch=0.2, aFs=0.0, aFe=0.8, aNs=0.6, aNe=1.2, tool_rot=0.35)
+    add(L + 3.2, head=0.55, lean=0.0, crouch=0.0)                       # sees the tiny moth in the moon
+    add(L + 3.6, head=0.75, lean=-0.05)                                 # head tilt
     add(TO - 1.1, head=0.6, lean=-0.05, aNs=1.9, aNe=0.4, tool_rot=0.65, tiptoe=1.0)  # sneaks the net up
     add(TO + 0.2, head=0.6, lean=-0.1, aNs=2.3, aNe=0.2, tool_rot=0.75, tiptoe=1.6)
     add(TO + 0.8, head=0.2, lean=0.1, aNs=1.0, aNe=1.0, tool_rot=0.2, tiptoe=0.0, aFs=1.8, aFe=1.4)   # swats
@@ -273,11 +273,11 @@ def pose_keys():
     add(T['look'] + 3.0, head=0.7, lean=-0.08, aNs=0.9, aNe=1.3, tool_rot=1.95)        # looks up into the moonlight
     ST = T['sting']
     add(ST - 0.5, head=0.0, lean=0.05, aNs=0.6, aNe=1.25, aFs=-0.45, aFe=0.5, tool_rot=0.3, crouch=0.0, jump=0.0, tiptoe=0.0)
-    add(ST + 1.9, head=0.05, lean=0.05)
+    add(ST + 1.8, head=0.05, lean=0.05)
     add(ST + 2.4, head=0.5, lean=-0.12)                                  # oh no
-    add(ST + 2.9, head=0.5, lean=-0.12)
-    add(ST + 3.3, head=-0.15, lean=0.25, aFs=2.05, aFe=2.35)             # facepalm
-    add(ST + 4.4, head=-0.2, lean=0.28, aFs=2.05, aFe=2.35)
+    add(ST + 2.8, head=0.5, lean=-0.12)
+    add(ST + 3.2, head=-0.15, lean=0.25, aFs=2.05, aFe=2.35)             # facepalm
+    add(ST + 4.6, head=-0.2, lean=0.28, aFs=2.05, aFe=2.35)
     return k
 
 
@@ -379,18 +379,18 @@ def cam_at(t):
         (SH, SH + 3.0, lambda u: (-6.0, 4.0, W_)),                                                     # the moth takes off
         (SH + 3.0, SH + 4.6, lambda u: tuple(head_at(SH + 3.6) + [0, 3.0]) + (2.6 + 0.1 * u,)),         # darkness passes over him
         (SH + 4.6, L, lambda u: (14 * ss(u), 4 + 4 * ss(u), W_ + 0.18 * ss(u))),
-        (L, L + 2.2, lambda u: (24.0, 6.0, 1.3)),
-        (L + 2.2, L + 4.0, lambda u: (MOON_C[0], MOON_C[1], 3.4 + 0.15 * u)),                    # moth close-up
-        (L + 4.0, L + 5.4, lambda u: tuple(head_at(L + 4.7) + [2.0, 1.0]) + (2.3,)),                # fisherman peeks
-        (L + 5.4, T['bumps'], lambda u: (22.0, 6.0, 1.28)),
+        (L, L + 1.8, lambda u: (24.0, 6.0, 1.3)),
+        (L + 1.8, L + 3.2, lambda u: (MOON_C[0], MOON_C[1], 3.4 + 0.15 * u)),                    # moth close-up
+        (L + 3.2, L + 4.4, lambda u: tuple(head_at(L + 3.8) + [2.0, 1.0]) + (2.3,)),                # fisherman sees it
+        (L + 4.4, T['bumps'], lambda u: (22.0, 6.0, 1.28)),
         (T['bumps'], T['bumps_end'], lambda u: (0.0, 2.0, W_)),
         (T['bumps_end'], C + 0.9, lambda u: (14.0, -2.0, 1.22)),
         (C + 0.9, C + 2.6, lambda u: tuple(0.6 * net_center(C + 1.7) + 0.4 * head_at(C + 1.7)) + (2.5 + 0.1 * u,)),  # the catch
         (C + 2.6, T['hand'], lambda u: (14.0, 0.0, 1.18)),
         (T['hand'], T['dark'], lambda u: (10.0, 6.0, W_ + 0.04 * u)),
         (T['dark'], T['release'] - 0.4, lambda u: (WIN_C[0], WIN_C[1] + 2, 1.0 + 0.04 * u)),
-        (T['release'] - 0.4, T['release'] + 1.4, lambda u: tuple(net_center(T['release'] + 1.2) + [-8, 2]) + (1.8,)),   # the net opens
-        (T['release'] + 1.4, T['release'] + 5.2, lambda u: tuple(moon_moth_xy(T['release'] + 1.4 + u * 3.8 - 0.4) * 0.8 + WIN_C * 0.2) + (1.7 - 0.5 * ss(u),)),
+        (T['release'] - 0.4, T['release'] + 1.4, lambda u: tuple(0.55 * net_center(T['release'] + 1.2) + 0.45 * WIN_C + [0, 3]) + (1.55,)),   # the net opens
+        (T['release'] + 1.4, T['release'] + 5.2, lambda u: tuple(moon_moth_xy(T['release'] + 1.4 + u * 3.8 - 0.4) * 0.5 + WIN_C * 0.5) + (1.5 - 0.4 * ss(u),)),
         (T['release'] + 5.2, T['look'], lambda u: (WIN_C[0], WIN_C[1] + 2, 1.02)),
         (T['look'], T['sting'], lambda u: (WIN_C[0] + 6 * ss(u * 1.15), WIN_C[1] + 1 - 2 * ss(u * 1.15), 1.02 + 0.4 * ss(u * 1.15))),
         (T['sting'], DUR, lambda u: (12.0, 0.0, 1.2)),
@@ -519,8 +519,8 @@ def scene(t):
         u = t - T['hand']
         nc = net_center(T['hand'] + 1.3)
         H, D = T['hand'], T['dark']
-        S = kf(t, [(H, (nc[0] + 4, 100)), (H + 1.3, (nc[0] - 1, nc[1] + 16)), (H + 1.9, (nc[0], nc[1] + 15)), (D, (1.0, 8.0))])
-        z = float(kf(t, [(H, 40.0), (H + 1.9, 42.0), (D - 0.3, 146.0), (D, 147.0)], ease=lambda x: lin(x) ** 1.6))
+        S = kf(t, [(H, (nc[0] + 4, 100)), (H + 1.3, (nc[0] - 1, nc[1] + 16)), (H + 2.5, (nc[0], nc[1] + 15)), (D - 1.6, (8.0, 14.0))])
+        z = float(kf(t, [(H, 40.0), (H + 2.5, 42.0), (D - 1.6, 128.0)], ease=lambda x: lin(x) ** 1.4))
         wp = scr2world(S, z)
         shapes += P.hand(wp[0], wp[1], z, rot=0.25 + 0.05 * nz(t, 33), scale=1.0, curl=0.2 + 0.15 * np.sin(u * 1.5) + 0.5 * ss((t - D + 0.5) / 0.5))
     moon = None
@@ -541,7 +541,7 @@ def moonlight(t, shapes):
     u = t - T['window']
     shutter = ss(u / 3.2)
     power = 1.05 * min(1.0, 0.35 + ss(u / 1.5))
-    moon = Moon(dx=MOON_DIR[0], dy=MOON_DIR[1], ang=0.0028, power=power, color=(0.50, 0.66, 1.0))
+    moon = Moon(dx=MOON_DIR[0], dy=MOON_DIR[1], ang=0.0016, power=power, color=(0.50, 0.66, 1.0))
     # window positioned so its light lands centred on the screen
     wc = WIN_C - MOON_DIR * WIN_Z
     ms = list(shapes)
@@ -552,6 +552,65 @@ def moonlight(t, shapes):
         wx, wy = sx - MOON_DIR[0] * z, sy - MOON_DIR[1] * z      # world pos so its moonlight shadow lands at (sx, sy)
         ms += P.moth(wx, wy, z, flap=t * 2 * np.pi * 6.0, rot=0.6 + 0.2 * nz(t * 2, 43), scale=0.62)
     return moon, ms
+
+
+def cutaway(t):
+    """State for the backstage flame close-up, or None when we are on the screen."""
+    import flame as F
+    S, FX, FY = F.S, F.FX, F.FY
+    SH, B, D, ST = T['shadow1'], T['bumps'], T['dark'], T['sting']
+    cuts = [(0.0, T['open_cut'], 'open'), (SH + 1.1, SH + 2.5, 'moth'), (B + 1.2, B + 3.0, 'bump'),
+            (D - 1.6, D + 0.25, 'pinch'), (ST, ST + 1.5, 'relight')]
+    for a, b, kind in cuts:
+        if a <= t < b:
+            u = t - a
+            break
+    else:
+        return None
+    rel = lambda dx, dy: (FX + dx * S, FY + dy * S)
+    st = dict(power=1.0, flare=0.0)
+    flick = 0.0
+    if kind in ('open', 'relight'):
+        t_strike = 0.6 if kind == 'open' else 0.1
+        head = 0.0 if u < t_strike else (1.0 * np.exp(-(u - t_strike) * 2.5) + 0.45)
+        mx, my = kf(u, [(0.0, rel(330, 70)), (t_strike - 0.05, rel(16, -12)), (t_strike + 0.5, rel(16, -12)), (t_strike + 1.3, rel(420, 120))])
+        st['match'] = (mx, my, head) if u < t_strike + 1.3 else None
+        st['power'] = float(ss((u - t_strike - 0.25) / 0.9))
+        st['flare'] = 0.6 * np.exp(-max(u - t_strike - 0.3, 0) * 4) if u > t_strike + 0.3 else 0.0
+        st['screen_glow'] = st['power']
+        st['exposure'] = 1.0 if kind == 'relight' else float(ss(u / 0.25))
+        if kind == 'relight' and u > 0.55:
+            p = spline(u, [(0.55, (-620, -420)), (0.95, (-220, -260)), (1.25, (60, -230)), (1.5, (210, -300))])
+            st['moth'] = rel(*p) + (np.arccos(0.6 + 0.4 * np.cos(u * 2 * np.pi * 9)), -0.4, 16.0 * S)
+    elif kind == 'moth':
+        p = spline(u, [(0.0, (-640, -460)), (0.45, (-250, -300)), (0.85, (70, -215)), (1.15, (210, -260)), (1.4, (120, -380))])
+        st['moth'] = rel(*p) + (np.arccos(0.6 + 0.4 * np.cos(u * 2 * np.pi * 9)), 0.4 * np.sin(u * 3), 16.0 * S)
+        flick = 0.3
+    elif kind == 'bump':
+        p = spline(u, [(0.0, (-260, -330)), (0.4, (12, -150)), (0.8, (150, -270)), (1.2, (-14, -140)), (1.8, (-230, -320))])
+        st['moth'] = rel(*p) + (np.arccos(0.6 + 0.4 * np.cos(u * 2 * np.pi * 10)), 0.5 * np.sin(u * 4), 16.0 * S)
+        fl = 0.0
+        for tb in (0.4, 1.2):
+            if u >= tb:
+                fl = max(fl, np.exp(-(u - tb) * 5))
+        st['flare'] = fl
+        st['sparks'] = [rel(10 + 160 * (u - 0.4) * np.cos(k * 1.7), -170 - 200 * (u - 0.4) + 60 * np.sin(k)) + (max(0, 1 - (u - 0.4) * 2.5),)
+                        for k in range(5)] if 0.4 <= u < 0.8 else None
+        if u >= 1.2:
+            st['smoke'] = (0.35 * np.exp(-(u - 1.2) * 1.5), (u - 1.2) * 0.8)
+        flick = 0.5
+    elif kind == 'pinch':
+        hp = kf(u, [(0.0, rel(700, -760)), (1.0, rel(4, -70))], ease=lambda x: 1 - (1 - lin(x)) ** 2.5)
+        pinch = float(ss((u - 1.0) / 0.3))
+        blur = float(kf(u, [(0.0, 9.0), (1.0, 2.5)]))
+        st['hand'] = (hp[0], hp[1], pinch, blur)
+        st['power'] = float(1 - ss((u - 1.05) / 0.3))
+        st['screen_glow'] = st['power']
+        if u >= 1.3:
+            st['smoke'] = (min(1.0, (u - 1.3) * 3), (u - 1.3) * 0.9)
+        st['exposure'] = float(1 - ss((u - 1.55) / 0.3))
+    st['power'] *= 1 + flick * 0.15 * np.sin(t * 41) + 0.04 * np.sin(t * 13)
+    return st
 
 
 def moon_moth(t):
@@ -569,7 +628,7 @@ def moon_moth_xy(t):
 
 def exposure(t):
     if t >= T['sting']:
-        return 1.0 if t < T['sting_end'] else 0.0
+        return 1.0 - ss((t - T['sting_end'] + 0.6) / 0.6)
     return 1.0 - ss((t - T['fade']) / 1.4)
 
 

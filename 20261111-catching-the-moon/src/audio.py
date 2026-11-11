@@ -200,7 +200,9 @@ def build():
     dl = np.abs(np.diff(lamp_curve(), prepend=0))
     sput = to_audio_rate(np.clip(dl * 6, 0, 1))
     sp = bp(rng.standard_normal(N), 150, 1200) * sput * 0.35
-    flame = hiss + crk + sp
+    cutm = to_audio_rate(np.array([1.0 if film.cutaway(t) is not None else 0.0 for t in FR]))
+    cutm = lp(cutm, 8).astype(np.float32)
+    flame = (hiss + crk + sp) * (1 + 1.8 * cutm)
     stems['amb'] += np.stack([flame, flame * 0.9], 1).astype(np.float32)
 
     # ---------------- match strike, flame catch, title gong
@@ -209,7 +211,7 @@ def build():
     ign = lp(rng.standard_normal(int(0.9 * SR)), 1800) * env_ad(int(0.9 * SR), 0.05, 0.25)
     put('sfx', ign.astype(np.float32), T['strike'] + 0.0, 0.5)
     gong = load('gong_horst.wav')
-    put('perc', gong[:int(9 * SR)] * np.linspace(1, 0, int(9 * SR)) ** 1.5, 2.6, 0.55)
+    put('perc', gong[:int(9 * SR)] * np.linspace(1, 0, int(9 * SR)) ** 1.5, T['open_cut'], 0.55)
 
     # ---------------- title pulled back: airy swell
     sw = bp(rng.standard_normal(int(2.2 * SR)), 300, 3000)
@@ -308,11 +310,11 @@ def build():
     # ---------------- landing & reveal
     L = T['land']
     put('perc', woodblock(1.6, 0.25), L + 0.25, 0.4, 0.4)
-    put('music', zither(hz('A5'), 4.0, 0.7, 0.5, harmonic=True), L + 2.25, 0.9, 0.4)   # the close-up
-    put('music', zither(hz('E6'), 3.0, 0.4, 0.5, harmonic=True), L + 3.1, 0.7, 0.4)
-    put('perc', woodblock(1.3, 0.6), L + 4.4, 0.45, 0.0)                               # he sees it
+    put('music', zither(hz('A5'), 4.0, 0.7, 0.5, harmonic=True), L + 1.85, 0.9, 0.4)   # the close-up
+    put('music', zither(hz('E6'), 3.0, 0.4, 0.5, harmonic=True), L + 2.5, 0.7, 0.4)
+    put('perc', woodblock(1.3, 0.6), L + 3.25, 0.45, 0.0)                               # he sees it
     # sneaky pizzicato as he raises the net
-    sneak_t0 = L + 5.2
+    sneak_t0 = L + 3.9
     seq = ['D3', 'F#3', 'A3', 'F#3', 'D3', 'F#3', 'B3', 'A3', 'D3', 'F#3', 'A3', 'D4', 'E4']
     for k, n_ in enumerate(seq):
         tk = sneak_t0 + k * 0.36
@@ -331,14 +333,14 @@ def build():
     for k, n_ in enumerate(['A3', 'Bb3', 'B3', 'C4', 'C#4']):
         put('music', bowed(hz(n_), 1.1, 0.55 + 0.08 * k, trem=9, vib=0.1, att=0.08, rel=0.25), B + 0.3 + k * 0.92, 0.85, -0.2)
         put('music', bowed(hz(n_) / 2, 1.1, 0.4, trem=9, vib=0.1, att=0.08, rel=0.25), B + 0.3 + k * 0.92, 0.7, 0.2)
-    # ticks when the moth touches the lamp
-    for i, t in enumerate(FR):
-        if B <= t < T['bumps_end']:
-            ms = film.moth_state(t)
-            ms_prev = film.moth_state(t - 1 / 24)
-            if isinstance(ms, tuple) and isinstance(ms_prev, tuple) and ms[2] > 138.0 >= ms_prev[2]:
-                put('sfx', woodblock(2.4, 0.25), t, 0.5, 0.0)
-                put('sfx', noise_burst(0.25, 200, 1500, a=0.002, d=0.06, vel=0.5), t, 0.5)
+    # the moth hits the flame (cutaway): whoomp + sizzle + tick
+    for tb in (B + 1.2 + 0.4, B + 1.2 + 1.2):
+        put('sfx', (lp(rng.standard_normal(int(0.5 * SR)), 260) * env_ad(int(0.5 * SR), 0.01, 0.12)).astype(np.float32), tb, 0.9)
+        put('sfx', noise_burst(0.35, 3000, 11000, a=0.002, d=0.08, vel=0.6), tb + 0.02, 0.5, 0.1)
+        put('sfx', woodblock(2.4, 0.3), tb, 0.4, 0.0)
+    # wing beats near the screen while it bumps around the lamp
+    for k in range(4):
+        put('sfx', (lp(rng.standard_normal(int(0.3 * SR)), 400) * env_ad(int(0.3 * SR), 0.01, 0.07)).astype(np.float32), B + 0.4 + k * 0.85, 0.5, 0.0)
 
     # ---------------- the catch
     C = T['catch']
@@ -369,11 +371,11 @@ def build():
     put('music', bowed(hz('Eb4'), T['dark'] - H - 1.6, 0.25, vib=0.08, att=0.6, rel=0.1), H + 1.7, 0.5, -0.2)
     wl = int(1.0 * SR)
     wh = lp(rng.standard_normal(wl), 900) * np.linspace(0, 1, wl) ** 2.5
-    put('sfx', wh.astype(np.float32), T['dark'] - 1.0, 0.35, 0.0)
+    put('sfx', wh.astype(np.float32), T['dark'] - 2.4, 0.35, 0.0)
     hiss = bp(rng.standard_normal(int(0.5 * SR)), 2500, 9000) * env_ad(int(0.5 * SR), 0.004, 0.09)
-    put('sfx', hiss.astype(np.float32), T['dark'] - 0.12, 0.35)
+    put('sfx', hiss.astype(np.float32), T['dark'] - 0.5, 0.45)
     puff = lp(rng.standard_normal(int(0.4 * SR)), 300) * env_ad(int(0.4 * SR), 0.005, 0.08)
-    put('sfx', puff.astype(np.float32), T['dark'] - 0.05, 0.3)
+    put('sfx', puff.astype(np.float32), T['dark'] - 0.32, 0.3)
 
     # ---------------- night: crickets, window, moonlight music
     D = T['dark']
@@ -424,27 +426,39 @@ def build():
 
     # ---------------- stinger: lamp relit, the moth is back, facepalm
     ST = T['sting']
-    put('sfx', noise_burst(0.18, 2500, 9000, a=0.002, d=0.05, vel=0.9), ST - 0.12, 0.8)
+    put('sfx', noise_burst(0.18, 2500, 9000, a=0.002, d=0.05, vel=0.9), ST + 0.0, 0.8)
     ign2 = lp(rng.standard_normal(int(0.7 * SR)), 1800) * env_ad(int(0.7 * SR), 0.04, 0.2)
-    put('sfx', ign2.astype(np.float32), ST, 0.45)
-    put('perc', woodblock(0.9, 0.9), ST + 3.3, 0.6, -0.1)
-    put('music', zither(hz('A3'), 1.2, 0.7, 0.8, bend=-3, bend_at=0.1), ST + 3.55, 0.8, 0.0)
+    put('sfx', ign2.astype(np.float32), ST + 0.35, 0.45)
+    nfl = int(0.95 * SR)
+    tt3 = np.arange(nfl) / SR
+    fl3 = bp(rng.standard_normal(nfl), 700, 4500) * (0.5 + 0.5 * np.sin(2 * np.pi * 11 * tt3)) ** 3 * np.sin(np.pi * tt3 / 0.95)
+    put('flutter', fl3.astype(np.float32), ST + 0.55, 0.5, -0.2)
+    put('perc', woodblock(0.9, 0.9), ST + 3.2, 0.6, -0.1)
+    put('music', zither(hz('A3'), 1.2, 0.7, 0.8, bend=-3, bend_at=0.1), ST + 3.45, 0.8, 0.0)
 
 
 def mixdown():
     g = dict(music=0.9, perc=0.8, sfx=0.9, amb=0.9, flutter=0.75)
     mix = sum(stems[k] * g[k] for k in stems)
-    # gentle room reverb on music+perc (multi-tap feedback-free)
-    wet = np.zeros_like(mix)
-    src = stems['music'] * g['music'] + stems['perc'] * g['perc']
-    for d, a in ((0.031, 0.3), (0.047, 0.25), (0.073, 0.2), (0.11, 0.15), (0.17, 0.1), (0.23, 0.07), (0.31, 0.05)):
-        i = int(d * SR)
-        wet[i:, 0] += a * src[:-i, 1]
-        wet[i:, 1] += a * src[:-i, 0]
-    wet = lp(wet.T, 4000).T
-    mix = mix + 0.6 * wet
+    # room reverb on music + percussion: synthetic impulse response (decorrelated noise, exp decay, darker tail)
+    src = stems['music'] * g['music'] + stems['perc'] * g['perc'] + 0.4 * stems['sfx'] * g['sfx']
+    n_ir = int(2.2 * SR)
+    tt = np.arange(n_ir) / SR
+    r2 = np.random.default_rng(77)
+    ir = np.zeros((n_ir, 2))
+    for ch in range(2):
+        nse = r2.standard_normal(n_ir)
+        early = lp(nse, 6000) * np.exp(-tt / 0.08)
+        late = lp(nse, 2500) * np.exp(-tt * 6.9 / 1.6)
+        ir[:, ch] = 0.5 * early + late
+    ir[:int(0.018 * SR)] = 0
+    ir /= np.sqrt((ir ** 2).sum(0, keepdims=True))
+    wet = np.stack([signal.fftconvolve(src[:, ch], ir[:, ch])[:N] for ch in range(2)], 1).astype(np.float32)
+    mix = mix + 0.32 * wet
     # silence after the end
     end = int(T['sting_end'] * SR)
+    fo = int(0.6 * SR)
+    mix[end - fo:end] *= np.linspace(1, 0, fo)[:, None] ** 1.5
     fade = np.ones(N)
     fade[end:] = 0
     mix *= fade[:, None]

@@ -25,7 +25,7 @@ def card(img, a, engine):
         A = os.path.join(HERE, '..', 'assets')
         f1 = ImageFont.truetype(os.path.join(A, 'kaiu.ttf'), int(H * 0.15))
         f2 = ImageFont.truetype(os.path.join(A, 'kaiu.ttf'), int(H * 0.046))
-        f3 = ImageFont.truetype(os.path.join(A, 'kaiu.ttf'), int(H * 0.028))
+        f3 = ImageFont.truetype(os.path.join(A, 'kaiu.ttf'), int(H * 0.034))
         for txt, f, y, col in (('撈月', f1, 0.40, (236, 214, 170)), ('Catching the Moon', f2, 0.575, (210, 196, 168)),
                                ('a shadow play, made entirely in code', f3, 0.67, (150, 142, 128))):
             w = d.textlength(txt, font=f)
@@ -39,7 +39,7 @@ def work(args):
     os.environ['MOTH_SCALE'] = str(a.scale)
     sys.path.insert(0, HERE)
     import cv2; cv2.setNumThreads(1)
-    import engine, film
+    import engine, film, flame
     fn = os.path.join(OUT, 'chunks', f'{a.name}_{idx:04d}.mp4')
     cmd = ['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{engine.W}x{engine.H}', '-r', '24', '-i', '-',
            '-c:v', 'libx264', '-threads', '1', '-preset', 'fast', '-crf', str(a.crf), '-pix_fmt', 'yuv420p', fn]
@@ -47,8 +47,11 @@ def work(args):
     for f in range(f0, f1):
         t = f / 24.0
         shapes, cam, lamp, moon, ms, st = film.scene(t)
+        cs = film.cutaway(t)
         ex = film.exposure(t)
-        if ex > 0.002:
+        if cs is not None:
+            img = flame.render_flame(cs, t, f)
+        elif ex > 0.002:
             img = engine.render(shapes, cam, lamp=lamp, moon=moon, moon_shapes=ms, grain_seed=f, exposure=ex, statics=st)
         else:
             img = engine.finish(np.zeros((engine.H, engine.W, 3), np.float32), f)

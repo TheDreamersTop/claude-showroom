@@ -112,7 +112,7 @@ def _fisher_geo():
     _F['belt'] = catmull([(-3.5, -0.2, 'c'), (3.3, -0.2, 'c'), (3.5, 1.5, 'c'), (-3.6, 1.5, 'c')])
     _F['belt_h'] = [circle(x, 0.65, 0.28, 10) for x in np.arange(-2.6, 3.0, 1.0)]
     _F['collar'] = catmull([(0.3, 12.8, 'c'), (2.0, 12.2), (2.9, 9.6, 'c'), (2.2, 9.4), (1.2, 11.6, 'c')])
-    _F['skirt'] = catmull([(-3.4, 0.6, 'c'), (3.2, 0.6, 'c'), (4.2, -5), (5.2, -10.5, 'c'), (-4.8, -10.5, 'c'), (-4.0, -5)])
+    _F['skirt'] = catmull([(-3.4, 0.6, 'c'), (3.2, 0.6, 'c'), (4.0, -3.5), (4.7, -6.6, 'c'), (-4.3, -6.6, 'c'), (-3.9, -3.5)])
     _F['skirt_h'] = pattern(_F['skirt'], 'slits', sp=1.3, r=0.35, margin=0.6, angle=np.pi / 2 - 0.06)
     _F['leg'] = catmull([(-0.9, 0.5, 'c'), (0.9, 0.5, 'c'), (0.8, -5.6, 'c'), (2.2, -6.0), (2.4, -7.0, 'c'), (-1.0, -7.0, 'c'), (-0.8, -5.6, 'c')])
     face = [(-0.7, -0.2, 'c'), (-1.3, 1.6), (-1.0, 3.7, 'c'), (1.2, 4.0), (1.9, 3.4), (2.1, 3.0), (2.95, 2.3, 'c'),
@@ -158,7 +158,7 @@ def fisherman(x, y, z=0.6, rot=0.0, lean=0.0, head=0.0, armN=(0.4, -0.6), armF=(
     # lower body
     if legs is not None:
         for i, (a, k) in enumerate(legs):
-            LM = hip @ mat(0.6 - 1.2 * i, -8.5, a)
+            LM = hip @ mat(0.6 - 1.2 * i, -5.8, a)
             out.append(leather(g['leg'], LM, z + 0.02, (0.20, 0.20, 0.26) if i else (0.16, 0.16, 0.22)))
     out.append(leather(g['skirt'], hip, z, GREEN_D, g['skirt_h']))
     out.append(leather(g['torso'], torsoM, z, GREEN, g['torso_h']))
