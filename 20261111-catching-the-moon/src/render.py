@@ -26,8 +26,7 @@ def card(img, a, engine):
         f1 = ImageFont.truetype(os.path.join(A, 'kaiu.ttf'), int(H * 0.15))
         f2 = ImageFont.truetype(os.path.join(A, 'PlayfairDisplay-Italicwght.ttf'), int(H * 0.05))
         f3 = ImageFont.truetype(os.path.join(A, 'PlayfairDisplay-Italicwght.ttf'), int(H * 0.03))
-        for txt, f, y, col in (('撈月', f1, 0.40, (236, 214, 170)), ('Catching the Moon', f2, 0.575, (210, 196, 168)),
-                               ('a shadow play, made entirely in code', f3, 0.67, (150, 142, 128))):
+        for txt, f, y, col in (('撈月', f1, 0.42, (236, 214, 170)), ('Catching the Moon', f2, 0.60, (210, 196, 168))):
             w = d.textlength(txt, font=f)
             d.text(((W - w) / 2, H * y - f.size / 2), txt, font=f, fill=col)
         _CARD['c'] = np.asarray(im).astype(np.float32)

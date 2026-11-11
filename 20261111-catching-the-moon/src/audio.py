@@ -115,6 +115,8 @@ def woodblock(pitch=1.0, vel=1.0):
 
 def bowed(f, dur, vel=1.0, trem=0.0, vib=0.25, att=0.25, rel=0.4):
     """Erhu-ish bowed tone (kept low in the mix): saw + formants + bow noise."""
+    if dur <= 0.1:
+        return np.zeros(1, np.float32)
     n = int(dur * SR)
     t = np.arange(n) / SR
     pe = 2 ** (vib * np.sin(2 * np.pi * 5.5 * t + 1) * np.clip(t / 0.5, 0, 1) / 12)
@@ -189,7 +191,7 @@ def build():
     room = lp(rng.standard_normal(N), 300) * 0.010
     stems['amb'][:, 0] += room
     stems['amb'][:, 1] += lp(rng.standard_normal(N), 300) * 0.010
-    hiss = bp(rng.standard_normal(N), 2000, 9000) * 0.006 * np.clip(lampP, 0, 1.5)
+    hiss = bp(rng.standard_normal(N), 1500, 6500) * 0.0035 * np.clip(lampP, 0, 1.5)
     # crackles
     crk = np.zeros(N)
     for _ in range(int(DUR * 2.2)):
@@ -332,13 +334,13 @@ def build():
         put('music', bowed(hz(n_), 1.1, 0.55 + 0.08 * k, trem=9, vib=0.1, att=0.08, rel=0.25), B + 0.3 + k * 0.92, 0.85, -0.2)
         put('music', bowed(hz(n_) / 2, 1.1, 0.4, trem=9, vib=0.1, att=0.08, rel=0.25), B + 0.3 + k * 0.92, 0.7, 0.2)
     # the moth hits the flame (cutaway): whoomp + sizzle + tick
-    for tb in (B + 1.2 + 0.4, B + 1.2 + 1.2):
+    for tb in (B + 0.4, B + 1.2):
         put('sfx', (lp(rng.standard_normal(int(0.5 * SR)), 260) * env_ad(int(0.5 * SR), 0.01, 0.12)).astype(np.float32), tb, 0.9)
         put('sfx', noise_burst(0.35, 3000, 11000, a=0.002, d=0.08, vel=0.6), tb + 0.02, 0.5, 0.1)
         put('sfx', woodblock(2.4, 0.3), tb, 0.4, 0.0)
     # wing beats near the screen while it bumps around the lamp
-    for k in range(4):
-        put('sfx', (lp(rng.standard_normal(int(0.3 * SR)), 400) * env_ad(int(0.3 * SR), 0.01, 0.07)).astype(np.float32), B + 0.4 + k * 0.85, 0.5, 0.0)
+    for k in range(2):
+        put('sfx', (lp(rng.standard_normal(int(0.3 * SR)), 400) * env_ad(int(0.3 * SR), 0.01, 0.07)).astype(np.float32), B - 0.8 + k * 0.5, 0.5, 0.0)
 
     # ---------------- the catch
     C = T['catch']
@@ -369,7 +371,7 @@ def build():
     put('music', bowed(hz('Eb4'), T['dark'] - H - 1.6, 0.25, vib=0.08, att=0.6, rel=0.1), H + 1.7, 0.5, -0.2)
     wl = int(1.0 * SR)
     wh = lp(rng.standard_normal(wl), 900) * np.linspace(0, 1, wl) ** 2.5
-    put('sfx', wh.astype(np.float32), T['dark'] - 2.4, 0.35, 0.0)
+    put('sfx', wh.astype(np.float32), T['dark'] - 1.5, 0.3, 0.2)
     hiss = bp(rng.standard_normal(int(0.5 * SR)), 2500, 9000) * env_ad(int(0.5 * SR), 0.004, 0.09)
     put('sfx', hiss.astype(np.float32), T['dark'] - 0.5, 0.45)
     puff = lp(rng.standard_normal(int(0.4 * SR)), 300) * env_ad(int(0.4 * SR), 0.005, 0.08)
@@ -418,7 +420,6 @@ def build():
     for k, n_ in enumerate(['D5', 'E5', 'F#5', 'A5', 'B5', 'D6']):
         put('music', zither(hz(n_), 3.0, 0.5, 0.4, harmonic=True), Rl + 4.0 + k * 0.45, 0.75, 0.1 - 0.15 * k)
     # final: he looks up into the moonlight
-    put('perc', load('gong_short.wav') * 1.0, T['look'] + 2.6, 0.22, 0.0)
     g3 = load('gong_horst.wav')[:int(4.6 * SR)]
     put('perc', g3 * np.linspace(1, 0, len(g3)) ** 1.3, T['card'] + 0.1, 0.35, 0.0)
     put('music', zither(hz('D4'), 6.0, 0.5, 0.3), T['look'] + 2.6, 0.7, -0.1)
@@ -436,7 +437,9 @@ def build():
     put('flutter', fl3.astype(np.float32), ST + 0.55, 0.5, -0.2)
     sw2 = lp(rng.standard_normal(int(0.6 * SR)), 500) * np.sin(np.linspace(0, np.pi, int(0.6 * SR))) ** 2
     put('sfx', sw2.astype(np.float32), ST + 1.5, 0.5, -0.3)
-    put('perc', woodblock(0.9, 0.9), ST + 2.35, 0.7, -0.1)
+    put('perc', woodblock(1.6, 0.35), ST + 2.8, 0.45, 0.4)
+    put('music', zither(hz('A5'), 2.5, 0.5, 0.5, harmonic=True), ST + 2.85, 0.6, 0.4)
+    put('perc', woodblock(0.9, 1.0), T['sting_end'] - 0.03, 0.8, 0.0)
 
 
 def mixdown():
@@ -459,11 +462,12 @@ def mixdown():
     mix = mix + 0.32 * wet
     # silence after the end
     end = int(T['sting_end'] * SR)
-    fo = int(0.04 * SR)
-    mix[end - fo:end] *= np.linspace(1, 0, fo)[:, None] ** 1.5
     fade = np.ones(N)
     fade[end:] = 0
+    tail = slice(end, min(N, end + int(0.6 * SR)))
+    keep_perc = stems['perc'][tail] * g['perc']
     mix *= fade[:, None]
+    mix[tail] += keep_perc
     peak = np.abs(mix).max()
     mix = mix / peak * 0.7
     return mix.astype(np.float32)

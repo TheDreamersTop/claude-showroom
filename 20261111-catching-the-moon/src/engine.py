@@ -63,7 +63,7 @@ def apply(M, P):
 
 
 class Shape:
-    __slots__ = ('poly', 'z', 'dye', 'edge', 'edge_t', 'holes', 'kind', 'line', 'width')
+    __slots__ = ('poly', 'z', 'dye', 'edge', 'edge_t', 'holes', 'kind', 'line', 'width', 'paint')
 
     def __init__(self, poly, z=0.5, dye=(0.05, 0.05, 0.05), edge=0.0, edge_t=0.06, holes=(), kind='fill',
                  line=False, width=0.3):
@@ -76,6 +76,7 @@ class Shape:
         self.kind = kind          # 'fill' multiplies; 'cut' resets the group buffer to clear
         self.line = line          # open polyline (rods, strings, antennae)
         self.width = width
+        self.paint = False        # True: covers what is behind it in its own group (stacked cut-outs) instead of multiplying
 
 
 # ---------------------------------------------------------------- light models
@@ -288,6 +289,21 @@ def draw_group(shapes, cam, light, sigma_units):
         if sh.kind == 'cut':
             sub[:] = sub * (1 - a) + a
             continue
+        if sh.paint:
+            cov = a
+            col = np.broadcast_to(sh.dye, a.shape[:2] + (3,)).astype(np.float32)
+            if holes:
+                hm = np.zeros((shh, sw), np.uint8)
+                cv2.fillPoly(hm, [np.int32(np.round((h_ - o2) * (1 << SUB))) for h_ in holes], 255, cv2.LINE_AA, SUB)
+                cov = cov * (1 - hm.astype(np.float32)[..., None] / 255.0)
+            if sh.edge > 0:
+                em = np.zeros((shh, sw), np.uint8)
+                cv2.polylines(em, [q], True, 255, lw, cv2.LINE_AA, SUB)
+                e = em.astype(np.float32)[..., None] / 255.0
+                col = col * (1 - e) + e * sh.edge_t
+                cov = np.maximum(cov, e)
+            sub[:] = sub * (1 - cov) + cov * col
+            continue
         part = (1 - a) + a * sh.dye
         if sh.edge > 0:
             em = np.zeros((shh, sw), np.uint8)
@@ -416,7 +432,7 @@ def render(shapes, cam, lamp=None, moon=None, moon_shapes=None, grain_seed=0, ex
     if sm.min() < 1:
         wood = sample_tex(wood_texture(), 6.0, cam)
         glow = blur_img(img * sm, 40, 40) * 0.25
-        lit = (lamp.power if lamp is not None else 0.0) + 0.3 * (moon.power if moon is not None else 0.0)
+        lit = (lamp.power if lamp is not None else 0.0)        # the moonlight never reaches the front of the stage
         img = img * sm + (1 - sm) * (wood * 0.32 * min(lit, 1.2) + glow)
     return finish(img * exposure, grain_seed)
 

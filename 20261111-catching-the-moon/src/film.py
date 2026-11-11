@@ -5,14 +5,14 @@ import puppets as P
 import engine
 
 FPS = 24
-DUR = 80.8
+DUR = 73.4
 
 # ------------------------------------------------------------------ beat times (seconds)
 T = dict(
     strike=0.6, open_cut=2.8, title_pull=5.6, set_in=7.2, boat_in=9.4, boat_stop=14.0,
-    notice=14.4, scoop1=17.2, reach=20.4, shadow1=23.6, land=32.2,
-    takeoff=37.4, bumps=40.9, bumps_end=44.3, catch=46.9, hand=49.5, dark=54.1, window=55.5,
-    release=61.0, look=67.8, fade=71.4, card=72.8, end=77.0, sting=77.6, sting_end=80.4)
+    notice=14.4, scoop1=17.2, reach=20.4, shadow1=23.6, land=30.8,
+    takeoff=36.0, bumps=38.6, bumps_end=40.4, catch=42.8, hand=45.4, dark=47.0, window=48.2,
+    release=53.6, look=59.6, fade=62.2, card=63.6, end=67.8, sting=68.4, sting_end=72.8)
 BUMP_DUR = T['bumps_end'] - T['bumps']
 PLANT0 = np.array([-48.0, 30.0])     # the real moth sits on the screen from the start
 PLANT1 = np.array([-30.0, 27.0])
@@ -117,18 +117,17 @@ MOTH_KEYS = [
     (SH_ + 1.8, (-15, 20, 104)),
     (SH_ + 2.6, (4, 16, 126)),
     (SH_ + 3.6, (62, 14, 124)),
-    (SH_ + 4.5, (30, 28, 118)),
-    (SH_ + 5.4, (-32, 30, 100)),
-    (SH_ + 6.4, (8, 40, 58)),
-    (SH_ + 7.5, (52, 30, 16)),
-    (SH_ + 8.4, (MOON_C[0] - 5, MOON_C[1] - 1, 3.5)),
+    (SH_ + 4.4, (20, 32, 100)),
+    (SH_ + 5.3, (8, 40, 58)),
+    (SH_ + 6.2, (52, 30, 16)),
+    (SH_ + 6.8, (MOON_C[0] - 5, MOON_C[1] - 1, 3.5)),
     (T['land'], (MOON_C[0], MOON_C[1] - 0.5, 0.3)),
     (T['takeoff'], (MOON_C[0], MOON_C[1] - 0.5, 0.3)),
     (T['takeoff'] + 0.45, (31, 26, 1.0)),
     (T['takeoff'] + 1.0, (21, 9, 1.6)),
     (T['takeoff'] + 1.5, (30, 4, 1.4)),
-    (T['takeoff'] + 2.1, (12, 10, 5.0)),
-    (T['takeoff'] + 2.9, (2, 16, 55)),
+    (T['takeoff'] + 1.8, (12, 10, 5.0)),
+    (T['takeoff'] + 2.3, (2, 16, 55)),
     (T['bumps'], (4, 10, 126)),
 ]
 
@@ -147,7 +146,7 @@ def moth_state(t):
     if t >= T['sting']:
         if t < T['sting'] + 1.5:
             return None
-        v = spline(t, [(T['sting'] + 1.5, (-30, 26, 118)), (T['sting'] + 2.1, (8, 12, 112)), (T['sting_end'], (30, 8, 110))])
+        v = spline(t, [(T['sting'] + 1.5, (-40, 28, 118)), (T['sting'] + 2.3, (6, 14, 112)), (T['sting'] + 3.2, (26, 10, 110)), (T['sting_end'], (34, 16, 112))])
         return v[0], v[1], v[2], np.arccos(0.62 + 0.38 * np.cos(t * 2 * np.pi * 7.0)), 0.2 * nz(t, 60), 0.62
     if t < MOTH_KEYS[0][0]:
         p, crawling = plant_pos(t)
@@ -249,9 +248,8 @@ def pose_keys():
     add(TO + 1.3, head=-0.2, lean=-0.2, aFs=2.6, aFe=0.4)
     add(TO + 1.8, head=0.3, lean=0.2, aFs=0.6, aFe=1.2)
     add(TO + 2.6, head=0.4, lean=0.0, aFs=-0.1, aFe=0.8)
-    add(B + 1.0, head=0.35, lean=0.0)
-    add(B + 2.5, head=0.25, lean=0.05, aFs=1.7, aFe=2.3)       # hand to face: worried
-    add(B + 4.2, head=0.3, lean=0.0, aFs=1.8, aFe=2.3)
+    add(B + 0.6, head=0.35, lean=0.0)
+    add(B + 1.4, head=0.25, lean=0.05, aFs=1.7, aFe=2.3)       # hand to face: worried
     add(C - 1.6, head=0.1, lean=0.15, aFs=-0.3, aFe=0.8, aNs=0.6, aNe=1.2, tool_rot=0.3, crouch=0.35)  # gathers
     add(C - 0.6, head=0.4, lean=-0.15, aNs=2.6, aNe=0.2, tool_rot=0.2, crouch=0.0, jump=9.0, aFs=1.0)  # leaps
     add(C, head=0.2, lean=0.2, aNs=1.9, aNe=0.1, tool_rot=1.1, jump=11.0, aFs=0.4)                     # swing
@@ -261,18 +259,23 @@ def pose_keys():
     add(T['dark'], head=0.6, lean=-0.1)
     add(T['dark'] + 0.8, head=0.1, lean=0.05, aNs=1.0, aNe=0.9, tool_rot=1.6)      # (in the dark) net lowered
     add(T['release'] - 0.6, head=0.1, lean=0.05, aNs=1.0, aNe=0.9, tool_rot=1.6)
-    add(T['release'] + 0.8, head=0.25, lean=0.0, aNs=1.2, aNe=0.8, tool_rot=1.35)     # lifts it, opening up
-    add(T['release'] + 2.4, head=0.55, lean=-0.05, aNs=1.2, aNe=0.8, tool_rot=1.3)     # watches it go
-    add(T['release'] + 4.6, head=0.65, lean=-0.08, aNs=0.6, aNe=1.25, tool_rot=0.25)   # stands the net upright
-    add(T['look'], head=0.5, lean=-0.05, aNs=0.6, aNe=1.25, tool_rot=0.25)
-    add(T['look'] + 2.6, head=0.72, lean=-0.1, aNs=0.6, aNe=1.25, tool_rot=0.25)       # looks up into the moonlight
+    RL = T['release']
+    add(RL + 0.6, head=0.35, lean=-0.05, aNs=1.55, aNe=0.55, tool_rot=0.85)            # lifts the net toward the light
+    add(RL + 0.8, tool_rot=0.93)
+    add(RL + 1.0, tool_rot=0.80)                                                         # a gentle shake: go on
+    add(RL + 1.25, tool_rot=0.87, head=0.45)
+    add(RL + 2.6, head=0.6, lean=-0.08)                                                 # watches it climb into the light
+    add(RL + 4.3, head=0.72, lean=-0.1, aNs=1.55, aNe=0.55, tool_rot=0.87)             # holds it up, an offering
+    add(RL + 5.4, head=0.74, lean=-0.1, aNs=0.6, aNe=1.25, tool_rot=0.25)              # stands the net upright
+    add(T['look'], head=0.76, lean=-0.1, aNs=0.6, aNe=1.25, tool_rot=0.25)
+    add(T['look'] + 2.0, head=0.8, lean=-0.12, aNs=0.6, aNe=1.25, tool_rot=0.25)       # still looking up
     ST = T['sting']
     add(ST - 0.5, head=0.0, lean=0.05, aNs=0.6, aNe=1.25, aFs=-0.45, aFe=0.5, tool_rot=0.3, crouch=0.0, jump=0.0, tiptoe=0.0)
-    add(ST + 1.5, head=0.05, lean=0.05)
-    add(ST + 1.85, head=0.5, lean=-0.12)                                 # oh no
-    add(ST + 2.05, head=0.5, lean=-0.12)
-    add(ST + 2.35, head=-0.15, lean=0.25, aFs=2.05, aFe=2.35)            # facepalm
-    add(ST + 3.0, head=-0.2, lean=0.28, aFs=2.05, aFe=2.35)
+    add(ST + 1.6, head=0.05, lean=0.05)
+    add(ST + 2.2, head=0.55, lean=-0.14)                                 # looks up: oh no, not again
+    add(ST + 2.9, head=0.55, lean=-0.14)
+    add(ST + 3.25, head=-0.15, lean=0.25, aFs=2.05, aFe=2.35)            # facepalm
+    add(ST + 4.4, head=-0.22, lean=0.3, aFs=2.05, aFe=2.35)
     return k
 
 
@@ -504,7 +507,7 @@ def scene(t):
             wp = scr2world((sx, sy), z)
             shapes += P.moth(wp[0], wp[1], z, flap=flap, rot=rot, scale=sc, legs_out=1.0 if z < 1 else 0.0)
     # puppeteer's hand: reaches toward the netted moth, then goes back to the lamp and pinches the flame
-    if T['hand'] <= t < T['dark'] + 0.05:
+    if False:
         u = t - T['hand']
         nc = net_center(T['hand'] + 1.3)
         H, D = T['hand'], T['dark']
@@ -522,7 +525,7 @@ def scene(t):
 
 MOON_DIR = np.array([-0.33, -0.10])
 WIN_Z = 320.0
-WIN_C = np.array([14.0, -5.0])
+WIN_C = np.array([16.0, -3.0])
 WIN_R = 50.0
 
 
@@ -548,7 +551,7 @@ def cutaway(t):
     import flame as F
     S, FX, FY = F.S, F.FX, F.FY
     SH, B, D, ST = T['shadow1'], T['bumps'], T['dark'], T['sting']
-    cuts = [(0.0, T['open_cut'], 'open'), (SH + 1.1, SH + 2.5, 'moth'), (B + 1.2, B + 3.0, 'bump'),
+    cuts = [(0.0, T['open_cut'], 'open'), (SH + 1.1, SH + 2.5, 'moth'), (B, T['bumps_end'], 'bump'),
             (D - 1.6, D + 0.25, 'pinch'), (ST, ST + 1.5, 'relight')]
     for a, b, kind in cuts:
         if a <= t < b:

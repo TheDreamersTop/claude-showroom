@@ -155,33 +155,40 @@ def fisherman(x, y, z=0.6, rot=0.0, lean=0.0, head=0.0, armN=(0.4, -0.6), armF=(
     root = mat(x, y, rot, sx, scale)
     hip = root @ mat(0, -crouch * 4.0, 0)
     torsoM = hip @ mat(0, 0, -lean)
-    # lower body
+    headM = torsoM @ mat(0.8, 12.5, head)
+    # arms first (far arm goes behind everything, near arm in front of everything)
+    info = {}
+    hands = []
+    arm_shapes = []
+    for i, (sh, el) in enumerate((armF, armN)):
+        dye_s = (0.40, 0.72, 0.50) if i == 0 else GREEN     # far arm lighter so overlaps stay readable
+        SM = torsoM @ mat(1.6, 10.6, sh)
+        part = [leather(g['uarm'], SM, z, dye_s)]
+        EM = SM @ mat(0.2, -5.1, el)
+        part.append(leather(g['farm'], EM, z, dye_s))
+        part.append(leather(g['cuff'], EM, z, YELLOW if i else (0.8, 0.62, 0.25), edge=0.18))
+        HM = EM @ mat(0.15, -4.9, 0)
+        part.append(Shape(apply(HM, g['hand']), z=z, dye=FACE, edge=0.2, edge_t=EDGE_T))
+        hands.append(apply(HM, [[0.2, -0.4]])[0])
+        arm_shapes.append(part)
+    out += arm_shapes[0]
     if legs is not None:
         for i, (a, k) in enumerate(legs):
             LM = hip @ mat(0.6 - 1.2 * i, -5.8, a)
-            out.append(leather(g['leg'], LM, z + 0.02, (0.20, 0.20, 0.26) if i else (0.16, 0.16, 0.22)))
+            out.append(leather(g['leg'], LM, z, (0.20, 0.20, 0.26) if i else (0.16, 0.16, 0.22)))
     out.append(leather(g['skirt'], hip, z, GREEN_D, g['skirt_h']))
     out.append(leather(g['torso'], torsoM, z, GREEN, g['torso_h']))
     out.append(leather(g['belt'], torsoM, z, RED, g['belt_h'], edge=0.22))
     out.append(leather(g['collar'], torsoM, z, YELLOW, edge=0.2))
-    headM = torsoM @ mat(0.8, 12.5, head)
     out.append(Shape(apply(headM, g['face']), z=z, dye=FACE, edge=0.26, edge_t=EDGE_T))
     out.append(Shape(apply(headM, g['eye']), z=z, dye=DARK))
     out.append(Shape(apply(headM, g['brow']), z=z, dye=DARK, line=True, width=0.22))
     out.append(leather(g['beard'], headM, z, (0.93, 0.9, 0.84), g['beard_h'], edge=0.2))
     out.append(leather(g['hat'], headM, z, STRAW, g['hat_h'], edge=0.3))
-    info = {}
-    hands = []
-    for i, (sh, el) in enumerate((armF, armN)):
-        dye_s = (0.40, 0.72, 0.50) if i == 0 else GREEN     # far arm lighter so overlaps stay readable
-        SM = torsoM @ mat(0.9 - 0.6 * i * 0, 11.2, sh)
-        out.append(leather(g['uarm'], SM, z, dye_s))
-        EM = SM @ mat(0.2, -5.1, el)
-        out.append(leather(g['farm'], EM, z, dye_s))
-        out.append(leather(g['cuff'], EM, z, YELLOW if i else (0.8, 0.62, 0.25), edge=0.18))
-        HM = EM @ mat(0.15, -4.9, 0)
-        out.append(Shape(apply(HM, g['hand']), z=z, dye=FACE, edge=0.2, edge_t=EDGE_T))
-        hands.append(apply(HM, [[0.2, -0.4]])[0])
+    out += arm_shapes[1]
+    for s_ in out:
+        if not s_.line:
+            s_.paint = True
     info['handF'], info['handN'] = hands
     info['neck'] = apply(headM, [[0.0, 0.0]])[0]
     info['head'] = apply(headM, [[1.0, 2.5]])[0]
@@ -194,8 +201,9 @@ def fisherman(x, y, z=0.6, rot=0.0, lean=0.0, head=0.0, armN=(0.4, -0.6), armF=(
         out.append(Shape(np.array([butt, tip]), z=z, dye=(0.35, 0.22, 0.10), line=True, width=0.45 * scale))
         NM = mat(tip[0], tip[1], -tool_rot + np.pi, scale, scale * (1 + net_bulge))
         # the hoop sits on the pole tip, perpendicular to it; the bag hangs beyond (a hand net seen side-on)
-        out.append(Shape(apply(NM, g['net']), z=z, dye=(0.42, 0.40, 0.36), edge=0.12, edge_t=0.2,
-                         holes=[apply(NM, h) for h in g['net_h']]))
+        nb = Shape(apply(NM, g['net']), z=z, dye=(0.42, 0.40, 0.36), edge=0.12, edge_t=0.2, holes=[apply(NM, h) for h in g['net_h']])
+        nb.paint = True
+        out.append(nb)
         out.append(Shape(apply(NM, g['hoop']), z=z, dye=(0.3, 0.2, 0.1), line=True, width=0.4 * scale))
         info['tip'] = tip
         info['netM'] = NM
