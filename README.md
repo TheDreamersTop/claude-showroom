@@ -15,6 +15,7 @@
 | 2026-11-10 | 晚星 61 VESPER 61 | 63 秒私人噴射機廣告：北緯 61 度往西飛，跑得比地球自轉快，夕陽就一直停在地平線上，最後從西邊再升起。<br/>*A 63-second luxury commercial for a private jet that keeps the sunset: at 61° north, flying west outruns the Earth's rotation, so the sun stays on the horizon and finally rises again in the west.* | [▶ Watch](https://thedreamerstop.github.io/claude-showroom/20261110-vesper-61/) | [`20261110-vesper-61/`](20261110-vesper-61/) |
 | 2026-11-10 | 還在冒泡 Larkin's · Still Fizzing | 53 秒可樂廣告，拍給長輩看：畫面裡沒有人，只有同一個瓶子和桌上的東西，從 1958 年說到今天。<br/>*A 53-second cola commercial for older viewers: no people on screen, just one bottle and the things on the table, from 1958 to today.* | [▶ Watch](https://thedreamerstop.github.io/claude-showroom/20261110-still-fizzing/) | [`20261110-still-fizzing/`](20261110-still-fizzing/) |
 | 2026-11-11 | 撈月 Catching the Moon | 一齣沒有台詞的皮影戲，全部用程式算出來：一個想要月亮的老漁夫，和戲台後面一隻真的飛蛾。<br/>*A wordless shadow play rendered entirely in code: an old fisherman who wants the moon, and a real moth behind the screen.* | [▶ Watch](https://thedreamerstop.github.io/claude-showroom/20261111-catching-the-moon/) | [`20261111-catching-the-moon/`](20261111-catching-the-moon/) |
+| 2026-11-12 | 一口氣 One Breath | 一個肥皂泡，每個顏色都由它的厚度算出來：攪動它、戳破它，或吹一個新的。<br/>*A soap bubble whose every colour is computed from its thickness. Stir it, pop it, or blow a new one.* | [▶ Live](https://thedreamerstop.github.io/claude-showroom/20261112-one-breath/) | [`20261112-one-breath/`](20261112-one-breath/) |
 
 ## 資料夾命名規則 · Folder naming
 

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>一口氣 One Breath</title>
+<meta name="description" content="A soap bubble whose every colour is computed from its thickness.">
+<meta property="og:title" content="一口氣 One Breath">
+<meta property="og:description" content="A soap bubble whose every colour is computed from its thickness.">
+<meta property="og:image" content="https://thedreamerstop.github.io/claude-showroom/20261112-one-breath/poster.jpg">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23e8c46a'/%3E%3Cstop offset='.5' stop-color='%23b04aa8'/%3E%3Cstop offset='1' stop-color='%232f6fd0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='url(%23g)' stroke-width='3'/%3E%3C/svg%3E">
+<style>
+  :root { --ink: #e9e6df; --dim: #8d8a84; }
+  html, body { margin: 0; height: 100%; background: #07070a; overflow: hidden; }
+  body { color: var(--ink); font-family: "Iowan Old Style", "Palatino Linotype", Georgia, "Noto Serif TC", "Songti TC", serif; -webkit-user-select: none; user-select: none; }
+  canvas#c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+  .fade { opacity: 0; transition: opacity 1.2s ease; pointer-events: none; }
+  .fade.on { opacity: 1; }
+  #title { position: fixed; left: 28px; top: 24px; pointer-events: none; }
+  #title h1 { margin: 0; font-weight: 400; font-size: 22px; letter-spacing: .18em; }
+  #title p { margin: 6px 0 0; font-size: 12px; letter-spacing: .08em; color: var(--dim); max-width: 26em; line-height: 1.6; }
+  .say { position: fixed; left: 0; right: 0; text-align: center; pointer-events: none; line-height: 1.7; padding: 0 16px; }
+  .say .zh { font-size: 17px; letter-spacing: .12em; }
+  .say .en { font-size: 13px; letter-spacing: .06em; color: var(--dim); font-style: italic; }
+  #hint { bottom: 7vh; }
+  #black { bottom: 7vh; }
+  #epitaph { top: 44vh; }
+  #epitaph .zh { font-size: 20px; }
+  .say .zh, .say .en { text-wrap: balance; }
+  #again { bottom: 9vh; }
+  #slow { position: fixed; right: 64px; bottom: 26px; font-size: 12px; letter-spacing: .12em; color: #e2b75c; }
+  #tag { position: fixed; left: 0; top: 0; font: 12px/1 ui-monospace, Menlo, Consolas, monospace; color: var(--ink); background: rgba(10,10,14,.55); padding: 5px 7px; border-radius: 3px; pointer-events: none; transition: opacity .3s; white-space: nowrap; }
+  #scale { position: fixed; right: 26px; top: 50%; transform: translateY(-50%); height: 46vh; width: 10px; pointer-events: none; }
+  #scale { transition: opacity 1s; }
+  body.nobubble #scale { opacity: 0; }
+  #ruler { width: 10px; height: 100%; display: block; border-radius: 5px 5px 0 0; }
+  #scale .tick { position: absolute; right: 18px; font: 10px/1 ui-monospace, Menlo, Consolas, monospace; color: var(--dim); transform: translateY(-50%); white-space: nowrap; }
+  #scale .cap { position: absolute; right: -4px; top: -48px; font-size: 11px; color: var(--dim); letter-spacing: .1em; text-align: right; white-space: nowrap; line-height: 1.4; }
+  #mark { position: absolute; left: -5px; width: 20px; height: 2px; background: #fff; box-shadow: 0 0 6px #fff; transform: translateY(-1px); transition: top .12s linear, opacity .3s; }
+  #nogl[hidden] { display: none; }
+  #nogl { position: fixed; inset: 0; display: grid; place-items: center; text-align: center; color: var(--dim); line-height: 1.8; }
+  @media (max-height: 500px) { #title p { display: none; } }
+  .clean #title, .clean #scale, .clean .say, .clean #slow, .clean #tag { display: none; }
+  @media (max-width: 640px) {
+    #title { left: 16px; top: 16px; }
+    #title p { display: none; }
+    #scale { right: 14px; height: 34vh; }
+    #scale .tick { font-size: 9px; right: 14px; }
+    #scale .tick.mid { display: none; }
+    #slow { right: 16px; bottom: 16px; }
+  }
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="A soap bubble floating in a dark room"></canvas>
+
+<div id="title">
+  <h1>一口氣 &nbsp;One Breath</h1>
+  <p>一個肥皂泡。每個顏色都由它的厚度算出來。<br>A soap bubble whose every colour is computed from its thickness.</p>
+</div>
+
+<div id="scale" aria-hidden="true">
+  <div class="cap">顏色＝厚度<br>colour = thickness</div>
+  <canvas id="ruler"></canvas>
+  <div class="tick" style="top:0%">1200 nm</div>
+  <div class="tick mid" style="top:33.3%">800</div>
+  <div class="tick mid" style="top:66.7%">400</div>
+  <div class="tick" style="top:100%">0</div>
+  <div id="mark" class="fade"></div>
+</div>
+
+<div id="tag" class="fade"></div>
+
+<div id="hint" class="say fade"><div class="zh">拖曳可以攪動，輕點會戳破。</div><div class="en">Drag to stir. Tap to pop.</div></div>
+<div id="black" class="say fade"><div class="zh">頂端出現黑點了：那裡的膜只剩幾十個分子厚。</div><div class="en">Black spots at the top: the film there is only a few dozen molecules thick.</div></div>
+<div id="slow" class="fade">慢動作 200× &nbsp;SLOW MOTION</div>
+<div id="epitaph" class="say fade"><div class="zh" id="ep-zh"></div><div class="en" id="ep-en"></div></div>
+<div id="again" class="say fade"><div class="zh">按住吹氣，放開。吹越久，泡泡越大。</div><div class="en">Hold to blow, then let go. The longer you blow, the bigger it gets.</div></div>
+
+<div id="nogl" hidden>這個作品需要支援 WebGL2 的瀏覽器。<br>This piece needs a browser with WebGL2.</div>
+
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>
