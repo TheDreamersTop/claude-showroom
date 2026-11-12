@@ -5,9 +5,9 @@ set -euo pipefail
 V=$1; A=$2; O=$3
 D=$(dirname "$O"); B=$(basename "$O" .mp4)
 DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$V")
-M=$(ffmpeg -hide_banner -i "$A" -t "$DUR" -af loudnorm=I=-16:TP=-1.5:LRA=11:print_format=json -f null - 2>&1 | sed -n '/{/,/}/p')
+M=$(ffmpeg -hide_banner -i "$A" -t "$DUR" -af loudnorm=I=-16:TP=${TP:--1.5}:LRA=11:print_format=json -f null - 2>&1 | sed -n '/{/,/}/p')
 g(){ echo "$M" | grep "\"$1\"" | sed 's/.*: "\(.*\)".*/\1/'; }
-ffmpeg -y -loglevel error -i "$A" -t "$DUR" -af "loudnorm=I=-16:TP=-1.5:LRA=11:measured_I=$(g input_i):measured_TP=$(g input_tp):measured_LRA=$(g input_lra):measured_thresh=$(g input_thresh):offset=$(g target_offset):linear=true,aresample=192000,aformat=sample_fmts=fltp:channel_layouts=stereo,alimiter=limit=0.79:attack=0.5:release=60:level=false,aresample=48000" -c:a pcm_s16le "$D/${B}_mix.wav"
+ffmpeg -y -loglevel error -i "$A" -t "$DUR" -af "loudnorm=I=-16:TP=${TP:--1.5}:LRA=11:measured_I=$(g input_i):measured_TP=$(g input_tp):measured_LRA=$(g input_lra):measured_thresh=$(g input_thresh):offset=$(g target_offset):linear=true,aresample=192000,aformat=sample_fmts=fltp:channel_layouts=stereo,alimiter=limit=${LIM:-0.79}:attack=0.5:release=60:level=false,aresample=48000" -c:a pcm_s16le "$D/${B}_mix.wav"
 ffmpeg -y -loglevel error -i "$D/${B}_mix.wav" -c:a aac -b:a 192k "$D/${B}_a.m4a"
 ffmpeg -y -loglevel error -i "$V" -i "$D/${B}_a.m4a" -map 0:v -map 1:a -c copy -movflags +faststart "$O"
 echo "== loudness"; ffmpeg -hide_banner -i "$O" -vn -af ebur128=peak=true -f null - 2>&1 | sed -n '/Summary/,$p' | grep -E "I:|LRA:|Peak:"

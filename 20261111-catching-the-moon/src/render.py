@@ -24,7 +24,7 @@ def card(img, a, engine):
         d = ImageDraw.Draw(im)
         A = os.path.join(HERE, '..', 'assets')
         f1 = ImageFont.truetype(os.path.join(A, 'kaiu.ttf'), int(H * 0.15))
-        f2 = ImageFont.truetype(os.path.join(A, 'PlayfairDisplay-Italicwght.ttf'), int(H * 0.05))
+        f2 = ImageFont.truetype(os.path.join(A, 'PlayfairDisplay-Italicwght.ttf'), int(H * 0.068))
         f3 = ImageFont.truetype(os.path.join(A, 'PlayfairDisplay-Italicwght.ttf'), int(H * 0.03))
         for txt, f, y, col in (('撈月', f1, 0.42, (236, 214, 170)), ('Catching the Moon', f2, 0.60, (210, 196, 168))):
             w = d.textlength(txt, font=f)

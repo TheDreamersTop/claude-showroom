@@ -81,7 +81,7 @@ class Shape:
 
 # ---------------------------------------------------------------- light models
 class Lamp:
-    def __init__(self, x=0.0, y=6.0, L=150.0, size=1.8, power=1.0, color=(1.0, 0.74, 0.42)):
+    def __init__(self, x=0.0, y=6.0, L=150.0, size=1.3, power=1.0, color=(1.0, 0.74, 0.42)):
         self.x, self.y, self.L, self.size, self.power, self.color = x, y, L, size, power, color
 
     def project(self, P, z):
@@ -427,7 +427,18 @@ def render(shapes, cam, lamp=None, moon=None, moon_shapes=None, grain_seed=0, ex
         img += moon.power * np.array(moon.color, np.float32) * T2
     if extra_light is not None:
         img += extra_light
-    img *= paper_statics(statics, cam)
+    PS = paper_statics(statics, cam)
+    # the puppets (painted cut-outs) hide the painted scenery behind them, so no hill or sky line runs through a figure
+    lt = lamp if (lamp is not None and lamp.power > 0) else moon
+    solid = [s for s in (shapes if lt is lamp else (moon_shapes or shapes)) if getattr(s, 'paint', False)] if (statics and lt is not None) else []
+    if solid:
+        M = np.zeros((H, W), np.uint8)
+        polys = [np.int32(np.round(cam.to_px(lt.project(s.poly, s.z)[0]) * 16)) for s in solid]
+        cv2.fillPoly(M, polys, 255, cv2.LINE_AA, 4)
+        Mf = cv2.GaussianBlur(M.astype(np.float32) / 255.0, (0, 0), 0.8)[..., None]
+        paper = sample_tex(paper_texture(), PAPER_PPU, cam)
+        PS = PS * (1 - Mf) + paper * Mf
+    img *= PS
     sm = screen_mask(cam)
     if sm.min() < 1:
         wood = sample_tex(wood_texture(), 6.0, cam)

@@ -211,8 +211,9 @@ def build():
     nfl0 = int(0.55 * SR)
     tt0 = np.arange(nfl0) / SR
     fl0 = bp(rng.standard_normal(nfl0), 900, 5000) * (0.5 + 0.5 * np.sin(2 * np.pi * 12 * tt0)) ** 3 * np.sin(np.pi * tt0 / 0.55)
-    put('flutter', fl0.astype(np.float32), 0.02, 0.22, 0.5)
-    put('flutter', fl0.astype(np.float32), 0.02, 0.14, -0.6)
+    fl0 = lp(fl0, 3500)
+    put('flutter', fl0.astype(np.float32), 0.02, 0.10, 0.5)
+    put('flutter', fl0.astype(np.float32), 0.06, 0.06, -0.6)
     # ---------------- match strike, flame catch, title gong
     put('sfx', noise_burst(0.18, 2500, 9000, a=0.002, d=0.05, vel=0.9), T['strike'] - 0.12, 0.8)
     put('sfx', noise_burst(0.12, 1500, 7000, a=0.002, d=0.03, vel=0.6), T['strike'] - 0.32, 0.6)
@@ -318,9 +319,9 @@ def build():
     put('perc', woodblock(1.6, 0.25), L + 0.25, 0.4, 0.4)
     put('music', zither(hz('A5'), 4.0, 0.7, 0.5, harmonic=True), L + 1.85, 0.9, 0.4)   # the close-up
     put('music', zither(hz('E6'), 3.0, 0.4, 0.5, harmonic=True), L + 2.5, 0.7, 0.4)
-    put('perc', woodblock(1.3, 0.6), L + 3.25, 0.45, 0.0)                               # he sees it
+    put('perc', woodblock(1.3, 0.6), L + 3.35, 0.45, 0.0)                               # he sees it
     # sneaky pizzicato as he raises the net
-    sneak_t0 = L + 3.9
+    sneak_t0 = L + 4.0
     seq = ['D3', 'F#3', 'A3', 'F#3', 'D3', 'F#3', 'B3', 'A3', 'D3', 'F#3', 'A3', 'D4', 'E4']
     for k, n_ in enumerate(seq):
         tk = sneak_t0 + k * 0.36
@@ -344,16 +345,16 @@ def build():
         put('sfx', (lp(rng.standard_normal(int(0.5 * SR)), 260) * env_ad(int(0.5 * SR), 0.01, 0.12)).astype(np.float32), tb, 0.9)
         put('sfx', noise_burst(0.35, 3000, 11000, a=0.002, d=0.08, vel=0.6), tb + 0.02, 0.5, 0.1)
         put('sfx', woodblock(2.4, 0.3), tb, 0.4, 0.0)
-    sz = noise_burst(0.9, 2500, 12000, a=0.003, d=0.25, vel=0.8)
-    for _ in range(18):
-        i = rng.integers(0, int(0.7 * SR))
+    sz = noise_burst(1.3, 2500, 12000, a=0.003, d=0.45, vel=0.8)
+    for _ in range(30):
+        i = rng.integers(0, int(1.1 * SR))
         sz[i:i + 300] += rng.standard_normal(300) * np.exp(-np.arange(300) / 50) * 0.8
-    put('sfx', sz.astype(np.float32), B + 1.22, 0.55, -0.1)
+    put('sfx', sz.astype(np.float32), B + 1.22, 0.5, -0.1)
     nfall = int((T['catch'] - T['bumps_end']) * SR)
     tf = np.arange(nfall) / SR
     fall = bp(rng.standard_normal(nfall), 300, 2500) * (0.5 + 0.5 * np.sin(2 * np.pi * (6 - 2.5 * tf / tf[-1]) * tf)) ** 3
     fall *= np.linspace(0.4, 1.0, nfall)
-    put('flutter', fall.astype(np.float32), T['bumps_end'], 0.45, 0.0)
+    put('flutter', fall.astype(np.float32), T['bumps_end'], 0.28, 0.0)
     # wing beats near the screen while it bumps around the lamp
     for k in range(2):
         put('sfx', (lp(rng.standard_normal(int(0.3 * SR)), 400) * env_ad(int(0.3 * SR), 0.01, 0.07)).astype(np.float32), B - 0.8 + k * 0.5, 0.5, 0.0)
@@ -412,7 +413,7 @@ def build():
                 tt2 = np.arange(nb) / SR
                 y[i:i + nb] += np.sin(2 * np.pi * f0 * tt2) * np.sin(np.pi * tt2 / 0.018) ** 2
             tc += per * rng.uniform(0.9, 1.1)
-        fade = np.clip((np.arange(N) / SR - t0) / 1.5, 0, 1) * np.clip((DUR - 1.0 - np.arange(N) / SR) / 3.0, 0, 1)
+        fade = np.clip((np.arange(N) / SR - t0) / 1.5, 0, 1) * np.clip((T['fade'] + 1.0 - np.arange(N) / SR) / 3.0, 0, 1)
         y *= fade * rng.uniform(0.5, 1.0)
         a = (pan + 1) * np.pi / 4
         stems['amb'] += (0.011 * np.stack([y * np.cos(a), y * np.sin(a)], 1)).astype(np.float32)
@@ -433,6 +434,9 @@ def build():
     put('perc', load('gong_short.wav') * 1.0, Rl + 2.8, 0.13, 0.0)
     put('music', zither(hz('A5'), 4.0, 0.55, 0.4, harmonic=True), Rl + 2.85, 0.8, 0.0)
     put('music', zither(hz('E6'), 4.0, 0.35, 0.4, harmonic=True), Rl + 3.1, 0.7, -0.1)
+    put('perc', woodblock(1.6, 0.3), Rl + 5.3, 0.35, 0.3)                      # it settles into the moon
+    put('music', zither(hz('A5'), 5.0, 0.6, 0.5, harmonic=True), Rl + 5.35, 0.85, 0.3)
+    put('music', zither(hz('D4'), 5.0, 0.45, 0.4), Rl + 5.5, 0.7, -0.1)
     sw_len = 5.5
     swell = (bowed(hz('D4'), sw_len, 0.5, vib=0.12, att=2.4, rel=2.2) + bowed(hz('A4'), sw_len, 0.35, vib=0.12, att=2.6, rel=2.2))
     put('music', swell, Rl + 0.4, 0.9, 0.0)
@@ -456,10 +460,11 @@ def build():
     put('flutter', fl3.astype(np.float32), ST + 0.55, 0.5, -0.2)
     sw2 = lp(rng.standard_normal(int(0.6 * SR)), 500) * np.sin(np.linspace(0, np.pi, int(0.6 * SR))) ** 2
     put('sfx', sw2.astype(np.float32), ST + 1.5, 0.5, -0.3)
-    put('perc', woodblock(1.6, 0.35), ST + 2.8, 0.45, 0.4)
-    put('music', zither(hz('A5'), 2.5, 0.5, 0.5, harmonic=True), ST + 2.85, 0.6, 0.4)
-    put('music', zither(hz('D3'), 4.0, 0.5, 0.4), ST + 3.4, 0.7, -0.1)
-    put('music', zither(hz('A3'), 4.0, 0.35, 0.4), ST + 3.55, 0.6, 0.1)
+    put('perc', woodblock(1.6, 0.35), ST + 3.0, 0.45, 0.4)
+    put('music', zither(hz('A5'), 2.5, 0.5, 0.5, harmonic=True), ST + 3.05, 0.6, 0.4)
+    put('music', zither(hz('D3'), 4.0, 0.5, 0.4), ST + 3.6, 0.7, -0.1)
+    put('music', zither(hz('A3'), 4.0, 0.35, 0.4), ST + 3.75, 0.6, 0.1)
+    put('music', zither(hz('F#4'), 4.0, 0.3, 0.4), ST + 3.9, 0.55, 0.2)
 
 
 def mixdown():
@@ -481,9 +486,9 @@ def mixdown():
     wet = np.stack([signal.fftconvolve(src[:, ch], ir[:, ch])[:N] for ch in range(2)], 1).astype(np.float32)
     mix = mix + 0.32 * wet
     # silence after the end
-    end = int(T['sting_end'] * SR)
+    end = int(T['end'] * SR)
     fade = np.ones(N)
-    f0 = end - int(1.5 * SR)
+    f0 = end - int(1.2 * SR)
     fade[f0:end] = np.linspace(1, 0, end - f0) ** 1.6
     fade[end:] = 0
     mix *= fade[:, None]

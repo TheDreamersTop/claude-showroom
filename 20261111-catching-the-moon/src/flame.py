@@ -160,6 +160,27 @@ def smoke_layer(t, amount, age):
     return np.clip(out * amount * 0.6, 0, 1)
 
 
+def _window_masks():
+    if 'win' in _G:
+        return _G['win']
+    cx, cy, r = 0.16 * W, 0.30 * H, 0.15 * H
+    disc = np.zeros((H, W), np.uint8)
+    cv2.circle(disc, (int(cx * 16), int(cy * 16)), int(r * 16), 255, -1, cv2.LINE_AA, 4)
+    lines = np.zeros((H, W), np.uint8)
+    th = max(2, int(5 * S))
+    cv2.circle(lines, (int(cx * 16), int(cy * 16)), int(r * 16), 255, th, cv2.LINE_AA, 4)
+    cv2.circle(lines, (int(cx * 16), int(cy * 16)), int(0.72 * r * 16), 255, th, cv2.LINE_AA, 4)
+    for k in range(24):
+        a = 2 * np.pi * k / 24 + 0.06
+        p0 = (int((cx + 0.72 * r * np.cos(a)) * 16), int((cy + 0.72 * r * np.sin(a)) * 16))
+        p1 = (int((cx + r * np.cos(a)) * 16), int((cy + r * np.sin(a)) * 16))
+        cv2.line(lines, p0, p1, 255, max(1, int(3 * S)), cv2.LINE_AA, 4)
+    d = cv2.GaussianBlur(disc.astype(np.float32) / 255, (0, 0), 3 * S)
+    l = cv2.GaussianBlur(lines.astype(np.float32) / 255, (0, 0), 1.5 * S)
+    _G['win'] = (d, l)
+    return _G['win']
+
+
 def render_flame(st, t, seed):
     img = np.zeros((H, W, 3), np.float32)
     power, flare = st.get('power', 0.0), st.get('flare', 0.0)
@@ -170,6 +191,10 @@ def render_flame(st, t, seed):
     scr = np.clip((xs - 0.78 * W) / (0.16 * W), 0, 1) ** 1.5
     img += (scr * glow * 0.55)[..., None] * np.array([1.0, 0.80, 0.55], np.float32) * (0.75 + 0.25 * np.exp(-((ys - FY * 0.8) / (0.6 * H)) ** 2))[..., None]
     img += np.array([0.035, 0.022, 0.014], np.float32) * glow
+    # a round lattice window on the backstage wall, shutter closed (it opens at the end of the film)
+    win = _window_masks()
+    img *= (1 - 0.6 * win[0])[..., None]
+    img *= (1 - 0.75 * win[1])[..., None]
     fl = flame_layer(t, power, flare, squeeze)
     img += fl
     # lamp body occludes, rim catches light

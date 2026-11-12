@@ -1,6 +1,6 @@
 # 撈月 · Catching the Moon
 
-A wordless shadow play, about 70 seconds long, rendered entirely in code.
+A wordless shadow play, about 65 seconds long, rendered entirely in code.
 
 **Watch:** https://thedreamerstop.github.io/claude-showroom/20261111-catching-the-moon/
 
@@ -30,7 +30,7 @@ The film's turn rests on that optics. A real moth sits on the screen from the fi
 - `src/audio.py`: the score and sound design, keyed to the same beat times. Guzheng-like plucks, woodblocks and bowed tremolo are synthesised. The wing flutter is driven by the moth's actual distance from the lamp and its position on screen.
 - `src/render.py`: parallel frame rendering piped into ffmpeg. `src/master.sh`: two-pass loudness normalisation, limiter, separate audio mux.
 
-Made in one overnight session on a laptop CPU (no GPU).
+Made on a laptop CPU (no GPU) over one evening and the next morning, about 9 hours of work, with a crash in between.
 
 ## How it got here
 
@@ -44,7 +44,12 @@ Each cut was watched by a fresh, independent reviewer (frame contact sheets plus
 | v6 | One scoop, continuous moonlight shot, moth hovers in the light | beat v5 7-3 |
 | v7 | The release becomes his gesture; puppet parts layer like stacked cut-outs | beat v6 6-4 |
 | v8 | Puppeteer's hand restored, warmer grade, the moth returns to the moon in the coda | beat v7 6-4 |
-| v9 | The moth singes a wing and falls into his net, so the snuffed lamp reads as a rescue; push-in on the release; riveted joints | beat v8 6-4 (6.5/10 solo) |
+| v9 | The moth singes a wing and falls into his net, so the snuffed lamp reads as a rescue; push-in on the release; riveted joints | beat v8 6-4 |
+| v10 | A close-up where he decides to let it go; crisper big shadows; the backstage window planted early | rendered, never published: the session crashed |
+| v11 | He tips and shakes the net open, the moth leaves with wings open, stronger singe | beat v10 6-4 |
+| v12 | Relit-lamp coda cut; puppets now hide the scenery painted behind them | beat v11 6-4 |
+| v13 | The freed moth settles into the painted moon in the window, final hold | beat v12 8-2 |
+| v14 | Window re-centred so no lattice bar crosses the moon; crickets fade under the ending | beat v13 7.5 to 6 |
 
 ## Sound credits
 
