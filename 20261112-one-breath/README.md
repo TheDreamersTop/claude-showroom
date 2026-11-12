@@ -50,7 +50,7 @@
 | `js/audio.js` | 合成的室內底噪、吹氣、攪動和破裂聲。*Synthesised room tone, breath, stir and pop.* |
 | `js/story.js` | 破掉後的那一句話。*The line shown after a pop.* |
 | `tests/` | `npm test`：用 node 驗證物理（色序、黑膜、破裂速度）。*Physics checks in node.* |
-| `tools/` | 本機伺服器與無頭瀏覽器截圖。*Local server and headless screenshots.* |
+| `tools/` | 本機伺服器、無頭瀏覽器截圖，以及行為檢查：完整一生、吹氣大小（`breath.mjs`）、120 Hz 螢幕（`hz.mjs`）。*Local server, headless screenshots, and behaviour checks: a full life, breath size (`breath.mjs`), 120 Hz screens (`hz.mjs`).* |
 
 需要支援 WebGL2 與浮點渲染目標的瀏覽器（目前的桌機與手機瀏覽器都可以）。
 *Needs WebGL2 with float render targets (current desktop and mobile browsers).*
